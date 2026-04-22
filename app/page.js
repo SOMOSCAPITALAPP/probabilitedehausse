@@ -136,6 +136,7 @@ export default function HomePage() {
             <a href="#methodology">Méthodologie</a>
             <a href="#coverage">Univers</a>
             <a href="#faq">FAQ</a>
+            <a href="/dashboard">Dashboard</a>
           </nav>
 
           <div className="nav-actions">
@@ -167,7 +168,10 @@ export default function HomePage() {
               <a className="button button-primary" href="#final-cta">
                 Demander un accès
               </a>
-              <a className="button button-secondary" href="#preview">
+                <a className="button button-secondary" href="/dashboard">
+                  Voir le dashboard
+                </a>
+                <a className="button button-secondary" href="#preview">
                 Voir la démo
               </a>
             </div>
