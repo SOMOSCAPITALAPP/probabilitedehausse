@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import datetime as dt
 
+from materialize_feature_snapshot import main as materialize_snapshot
+from run_probabilistic_model_v1 import main as run_model_v1
+
 
 PIPELINE_STEPS = [
     "validate normalized source freshness",
@@ -18,8 +21,8 @@ def main() -> None:
     print(f"Northcurve daily pipeline for {as_of_date}")
     for step in PIPELINE_STEPS:
         print(f"- {step}")
-
-    # TODO: Replace with SQL execution or orchestration calls.
+    materialize_snapshot()
+    run_model_v1()
 
 
 if __name__ == "__main__":
