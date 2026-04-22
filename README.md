@@ -29,6 +29,7 @@ The current version includes:
 - a premium landing page built with Next.js App Router
 - a visual mockup for rapid review
 - a first product narrative centered on probabilities, upside, and path
+- starter ingestion docs, jobs, and feature SQL views for the Northcurve engine
 
 ## Project Structure
 
@@ -39,8 +40,15 @@ app/
   page.js            Landing page
 public/
   mockup.svg         Static visual mockup
+db/
+  schema.sql         PostgreSQL schema
+  seed.sql           Initial asset seed
+  seed_macro.sql     Initial macro series seed
+  views/             SQL views for macro feature calculation
 docs/
   probabilitedehausse.md   Product concept and positioning note
+engine/
+  jobs/               Starter ingestion and orchestration scripts
 ```
 
 ## Product Thesis
