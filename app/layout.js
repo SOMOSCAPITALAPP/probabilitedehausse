@@ -1,9 +1,9 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Probabilistic Market Intelligence",
+  title: "Northcurve | Probabilistic Market Intelligence",
   description:
-    "La probabilité de hausse des grands actifs mondiaux, horizon par horizon."
+    "La probabilite de hausse des grands actifs mondiaux, horizon par horizon."
 };
 
 export default function RootLayout({ children }) {

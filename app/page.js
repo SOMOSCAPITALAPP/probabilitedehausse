@@ -128,7 +128,7 @@ export default function HomePage() {
       <header className="site-header">
         <div className="container nav-row">
           <a className="brand" href="#hero">
-            Argo Markets
+            Northcurve
           </a>
 
           <nav className="desktop-nav" aria-label="Navigation principale">
@@ -152,7 +152,7 @@ export default function HomePage() {
       <section id="hero" className="section hero-section">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">Probabilistic Market Intelligence</p>
+            <p className="eyebrow">Northcurve | Probabilistic Market Intelligence</p>
             <h1>
               La probabilité de hausse des grands actifs mondiaux, horizon par
               horizon.
@@ -535,7 +535,7 @@ export default function HomePage() {
         <div className="container footer-grid">
           <div className="footer-brand">
             <a className="brand" href="#hero">
-              Argo Markets
+              Northcurve
             </a>
             <p>Lecture probabiliste des grands actifs mondiaux.</p>
           </div>

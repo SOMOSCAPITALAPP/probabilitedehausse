@@ -1,8 +1,8 @@
-# Argo Markets
+# Northcurve
 
 Probabilistic market intelligence for major global assets.
 
-Each day, Argo Markets estimates for key financial assets:
+Each day, Northcurve estimates for key financial assets:
 
 - the probability of upside
 - the expected performance potential
@@ -13,7 +13,7 @@ This repository currently contains the first premium landing page prototype for 
 
 ## Positioning
 
-Argo Markets is not another indicator dashboard.
+Northcurve is not another indicator dashboard.
 
 It is a scenario engine designed to answer the questions investors actually ask:
 
