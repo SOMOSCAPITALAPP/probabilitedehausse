@@ -1,0 +1,177 @@
+<svg width="1440" height="2200" viewBox="0 0 1440 2200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="140" y1="60" x2="1180" y2="2200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D1627"/>
+      <stop offset="0.45" stop-color="#09111F"/>
+      <stop offset="1" stop-color="#050B15"/>
+    </linearGradient>
+    <linearGradient id="card" x1="600" y1="120" x2="1110" y2="890" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10223B" stop-opacity="0.98"/>
+      <stop offset="1" stop-color="#091726" stop-opacity="0.98"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="500" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A9BCFF"/>
+      <stop offset="0.6" stop-color="#79E7C6"/>
+      <stop offset="1" stop-color="#FFD58C"/>
+    </linearGradient>
+    <filter id="blur" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="30"/>
+    </filter>
+  </defs>
+
+  <rect width="1440" height="2200" fill="url(#bg)"/>
+  <circle cx="180" cy="180" r="180" fill="#6B8CFF" fill-opacity="0.18" filter="url(#blur)"/>
+  <circle cx="1200" cy="220" r="170" fill="#7BE3C2" fill-opacity="0.14" filter="url(#blur)"/>
+  <circle cx="1120" cy="1840" r="210" fill="#FFD58C" fill-opacity="0.08" filter="url(#blur)"/>
+
+  <rect x="64" y="28" width="1312" height="76" rx="20" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+  <text x="96" y="74" fill="#EFF6FF" font-family="Georgia, serif" font-size="19" letter-spacing="4">ARGO MARKETS</text>
+  <text x="760" y="74" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="16">Produit</text>
+  <text x="850" y="74" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="16">Méthodologie</text>
+  <text x="986" y="74" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="16">Univers</text>
+  <text x="1076" y="74" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="16">FAQ</text>
+  <rect x="1186" y="44" width="154" height="42" rx="21" fill="#7BE3C2"/>
+  <text x="1210" y="70" fill="#08111D" font-family="Arial, sans-serif" font-size="15" font-weight="700">Demander un accès</text>
+
+  <text x="100" y="190" fill="#7BE3C2" font-family="Arial, sans-serif" font-size="13" letter-spacing="3">PROBABILISTIC MARKET INTELLIGENCE</text>
+  <text x="100" y="292" fill="#EFF6FF" font-family="Georgia, serif" font-size="72" font-weight="500">
+    <tspan x="100" dy="0">La probabilité</tspan>
+    <tspan x="100" dy="72">de hausse des</tspan>
+    <tspan x="100" dy="72">grands actifs</tspan>
+    <tspan x="100" dy="72">mondiaux.</tspan>
+  </text>
+  <text x="100" y="590" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="22">
+    <tspan x="100" dy="0">Chaque jour, nous estimons pour les principaux actifs financiers</tspan>
+    <tspan x="100" dy="34">la probabilité de progression, le potentiel de performance</tspan>
+    <tspan x="100" dy="34">et la trajectoire de marché la plus probable.</tspan>
+  </text>
+
+  <rect x="100" y="700" width="192" height="52" rx="26" fill="#7BE3C2"/>
+  <text x="138" y="733" fill="#08111D" font-family="Arial, sans-serif" font-size="17" font-weight="700">Demander un accès</text>
+  <rect x="308" y="700" width="164" height="52" rx="26" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.14"/>
+  <text x="352" y="733" fill="#EFF6FF" font-family="Arial, sans-serif" font-size="17">Voir la démo</text>
+
+  <text x="100" y="810" fill="#D9E5F7" font-family="Arial, sans-serif" font-size="18">Indices, taux, devises, matières premières, crypto, ETF.</text>
+
+  <g>
+    <rect x="100" y="848" width="150" height="40" rx="20" fill="white" fill-opacity="0.04" stroke="white" stroke-opacity="0.12"/>
+    <text x="128" y="873" fill="#DCE8F8" font-family="Arial, sans-serif" font-size="15">Multi-horizons</text>
+    <rect x="264" y="848" width="178" height="40" rx="20" fill="white" fill-opacity="0.04" stroke="white" stroke-opacity="0.12"/>
+    <text x="292" y="873" fill="#DCE8F8" font-family="Arial, sans-serif" font-size="15">Mise à jour quotidienne</text>
+    <rect x="456" y="848" width="118" height="40" rx="20" fill="white" fill-opacity="0.04" stroke="white" stroke-opacity="0.12"/>
+    <text x="489" y="873" fill="#DCE8F8" font-family="Arial, sans-serif" font-size="15">Cross-asset</text>
+    <rect x="588" y="848" width="196" height="40" rx="20" fill="white" fill-opacity="0.04" stroke="white" stroke-opacity="0.12"/>
+    <text x="617" y="873" fill="#DCE8F8" font-family="Arial, sans-serif" font-size="15">Scénarios probabilistes</text>
+  </g>
+
+  <rect x="820" y="160" width="520" height="740" rx="32" fill="url(#card)" stroke="white" stroke-opacity="0.08"/>
+  <text x="854" y="210" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="14">Lecture du jour</text>
+  <text x="1182" y="210" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="14">Mis à jour aujourd'hui</text>
+  <text x="854" y="250" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="12" letter-spacing="2">ACTIF</text>
+  <text x="854" y="312" fill="#EFF6FF" font-family="Georgia, serif" font-size="54">S&amp;P 500</text>
+  <rect x="1152" y="258" width="144" height="34" rx="17" fill="white" fill-opacity="0.04" stroke="white" stroke-opacity="0.12"/>
+  <text x="1182" y="280" fill="#DCE8F8" font-family="Arial, sans-serif" font-size="14">Confiance élevée</text>
+
+  <rect x="854" y="340" width="52" height="34" rx="17" fill="#7BE3C2" fill-opacity="0.16" stroke="#7BE3C2" stroke-opacity="0.35"/>
+  <text x="871" y="362" fill="#7BE3C2" font-family="Arial, sans-serif" font-size="14">1M</text>
+  <rect x="916" y="340" width="52" height="34" rx="17" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.12"/>
+  <text x="933" y="362" fill="#DCE8F8" font-family="Arial, sans-serif" font-size="14">3M</text>
+  <rect x="978" y="340" width="60" height="34" rx="17" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.12"/>
+  <text x="992" y="362" fill="#DCE8F8" font-family="Arial, sans-serif" font-size="14">12M</text>
+
+  <g>
+    <rect x="854" y="396" width="145" height="108" rx="18" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <text x="878" y="430" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="14">1 mois</text>
+    <text x="878" y="482" fill="#EFF6FF" font-family="Arial, sans-serif" font-size="40" font-weight="700">58%</text>
+
+    <rect x="1008" y="396" width="145" height="108" rx="18" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <text x="1032" y="430" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="14">3 mois</text>
+    <text x="1032" y="482" fill="#EFF6FF" font-family="Arial, sans-serif" font-size="40" font-weight="700">64%</text>
+
+    <rect x="1162" y="396" width="145" height="108" rx="18" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <text x="1186" y="430" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="14">12 mois</text>
+    <text x="1186" y="482" fill="#EFF6FF" font-family="Arial, sans-serif" font-size="40" font-weight="700">71%</text>
+  </g>
+
+  <rect x="854" y="526" width="453" height="196" rx="22" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+  <line x1="854" y1="668" x2="1307" y2="668" stroke="white" stroke-opacity="0.05"/>
+  <path d="M884 650C930 660 968 672 1003 646C1037 621 1068 604 1107 610C1149 616 1172 585 1214 565C1246 550 1273 524 1292 500" stroke="url(#line)" stroke-width="5" stroke-linecap="round"/>
+  <text x="884" y="700" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="15">Consolidation courte, puis reprise progressive</text>
+
+  <g>
+    <rect x="854" y="742" width="220" height="88" rx="18" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <text x="878" y="774" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="14">Upside central</text>
+    <text x="878" y="814" fill="#EFF6FF" font-family="Arial, sans-serif" font-size="30" font-weight="700">+4,2%</text>
+
+    <rect x="1087" y="742" width="220" height="88" rx="18" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <text x="1111" y="774" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="14">Scénario haut</text>
+    <text x="1111" y="814" fill="#EFF6FF" font-family="Arial, sans-serif" font-size="30" font-weight="700">+9,1%</text>
+
+    <rect x="854" y="842" width="220" height="88" rx="18" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <text x="878" y="874" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="14">Drawdown probable</text>
+    <text x="878" y="914" fill="#EFF6FF" font-family="Arial, sans-serif" font-size="30" font-weight="700">-3,4%</text>
+
+    <rect x="1087" y="842" width="220" height="88" rx="18" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <text x="1111" y="874" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="14">Niveau de confiance</text>
+    <text x="1111" y="914" fill="#EFF6FF" font-family="Arial, sans-serif" font-size="30" font-weight="700">Élevé</text>
+  </g>
+
+  <text x="100" y="1035" fill="#7BE3C2" font-family="Arial, sans-serif" font-size="13" letter-spacing="3">SORTIE PRODUIT</text>
+  <text x="100" y="1110" fill="#EFF6FF" font-family="Georgia, serif" font-size="52">Une lecture immédiatement exploitable.</text>
+
+  <g>
+    <rect x="100" y="1160" width="280" height="200" rx="24" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <rect x="128" y="1190" width="44" height="44" rx="12" fill="#7BE3C2" fill-opacity="0.15" stroke="white" stroke-opacity="0.08"/>
+    <text x="128" y="1276" fill="#EFF6FF" font-family="Georgia, serif" font-size="28">Probabilité</text>
+    <text x="128" y="1312" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">Une estimation claire par</text>
+    <text x="128" y="1338" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">horizon de temps.</text>
+
+    <rect x="396" y="1160" width="280" height="200" rx="24" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <rect x="424" y="1190" width="44" height="44" rx="12" fill="#9BC4FF" fill-opacity="0.15" stroke="white" stroke-opacity="0.08"/>
+    <text x="424" y="1276" fill="#EFF6FF" font-family="Georgia, serif" font-size="28">Potentiel</text>
+    <text x="424" y="1312" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">Un scénario central, prudent</text>
+    <text x="424" y="1338" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">et favorable.</text>
+
+    <rect x="692" y="1160" width="280" height="200" rx="24" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <rect x="720" y="1190" width="44" height="44" rx="12" fill="#FFD58C" fill-opacity="0.15" stroke="white" stroke-opacity="0.08"/>
+    <text x="720" y="1276" fill="#EFF6FF" font-family="Georgia, serif" font-size="28">Risque</text>
+    <text x="720" y="1312" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">Le drawdown probable avant</text>
+    <text x="720" y="1338" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">la cible.</text>
+
+    <rect x="988" y="1160" width="280" height="200" rx="24" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <rect x="1016" y="1190" width="44" height="44" rx="12" fill="#7BE3C2" fill-opacity="0.15" stroke="white" stroke-opacity="0.08"/>
+    <text x="1016" y="1276" fill="#EFF6FF" font-family="Georgia, serif" font-size="28">Trajectoire</text>
+    <text x="1016" y="1312" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">Le chemin de marché le plus</text>
+    <text x="1016" y="1338" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">plausible.</text>
+  </g>
+
+  <text x="100" y="1490" fill="#7BE3C2" font-family="Arial, sans-serif" font-size="13" letter-spacing="3">MÉTHODOLOGIE</text>
+  <text x="100" y="1562" fill="#EFF6FF" font-family="Georgia, serif" font-size="52">Une approche probabiliste, rigoureuse par construction.</text>
+
+  <g>
+    <rect x="100" y="1618" width="390" height="230" rx="24" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <text x="132" y="1658" fill="#7BE3C2" font-family="Arial, sans-serif" font-size="13" letter-spacing="3">01</text>
+    <text x="132" y="1716" fill="#EFF6FF" font-family="Georgia, serif" font-size="30">Lecture du régime</text>
+    <text x="132" y="1760" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">Nous analysons les conditions</text>
+    <text x="132" y="1786" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">macro et de marché actuelles.</text>
+
+    <rect x="525" y="1618" width="390" height="230" rx="24" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <text x="557" y="1658" fill="#7BE3C2" font-family="Arial, sans-serif" font-size="13" letter-spacing="3">02</text>
+    <text x="557" y="1716" fill="#EFF6FF" font-family="Georgia, serif" font-size="30">Contextes comparables</text>
+    <text x="557" y="1760" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">Nous identifions des régimes</text>
+    <text x="557" y="1786" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">historiques proches.</text>
+
+    <rect x="950" y="1618" width="390" height="230" rx="24" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+    <text x="982" y="1658" fill="#7BE3C2" font-family="Arial, sans-serif" font-size="13" letter-spacing="3">03</text>
+    <text x="982" y="1716" fill="#EFF6FF" font-family="Georgia, serif" font-size="30">Distribution par horizon</text>
+    <text x="982" y="1760" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">Probabilité, potentiel, risque</text>
+    <text x="982" y="1786" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="18">de trajet et scénario central.</text>
+  </g>
+
+  <rect x="100" y="1936" width="1240" height="180" rx="28" fill="white" fill-opacity="0.03" stroke="white" stroke-opacity="0.08"/>
+  <text x="140" y="2004" fill="#EFF6FF" font-family="Georgia, serif" font-size="42">Une lecture plus claire des marchés mondiaux.</text>
+  <text x="140" y="2050" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="20">Chaque jour, identifiez où les probabilités sont les plus favorables,</text>
+  <text x="140" y="2078" fill="#A7B8D4" font-family="Arial, sans-serif" font-size="20">quel upside reste disponible, et quel chemin semble le plus plausible.</text>
+  <rect x="1068" y="1980" width="216" height="52" rx="26" fill="#7BE3C2"/>
+  <text x="1110" y="2013" fill="#08111D" font-family="Arial, sans-serif" font-size="17" font-weight="700">Demander un accès</text>
+</svg>
