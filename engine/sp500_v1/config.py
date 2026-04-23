@@ -21,6 +21,11 @@ FEATURE_COLUMNS = [
     "vol_21d",
     "drawdown_63d",
     "dist_ma_20d",
+    "intraday_range_pct",
+    "gap_open_pct",
+    "atr_14d_pct",
+    "close_in_range",
+    "volume_ratio_20d",
 ]
 
 MIN_TRAIN_SIZE = 10
