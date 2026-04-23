@@ -1,0 +1,35 @@
+{
+  "5D": {
+    "samples": 14182,
+    "brier_score": 0.284793,
+    "log_loss": 1.262665,
+    "directional_accuracy": 0.5386,
+    "return_mae": 0.017836,
+    "drawdown_mae": 0.010332,
+    "path_accuracy": 0.4431,
+    "train_window_days": 2520,
+    "neighbors": 7
+  },
+  "21D": {
+    "samples": 14166,
+    "brier_score": 0.264852,
+    "log_loss": 1.257016,
+    "directional_accuracy": 0.5882,
+    "return_mae": 0.035862,
+    "drawdown_mae": 0.021603,
+    "path_accuracy": 0.3688,
+    "train_window_days": 2520,
+    "neighbors": 7
+  },
+  "63D": {
+    "samples": 14124,
+    "brier_score": 0.245441,
+    "log_loss": 1.329579,
+    "directional_accuracy": 0.6412,
+    "return_mae": 0.057425,
+    "drawdown_mae": 0.033953,
+    "path_accuracy": 0.5329,
+    "train_window_days": 2520,
+    "neighbors": 7
+  }
+}

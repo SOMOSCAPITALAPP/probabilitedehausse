@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 
-from config import FEATURE_COLUMNS, MIN_TRAIN_SIZE, NEIGHBORS
+from config import FEATURE_COLUMNS, MIN_TRAIN_SIZE, NEIGHBORS, TRAIN_WINDOW
 from model import find_neighbors, summarize_neighbors
 
 
@@ -24,7 +24,7 @@ def run_walk_forward_backtest(dataset: list[dict], horizons: dict[str, int]) -> 
 
             train = [
                 row
-                for row in dataset[:idx]
+                for row in dataset[max(0, idx - TRAIN_WINDOW):idx]
                 if horizon_name in row["labels"]
             ]
             if len(train) < MIN_TRAIN_SIZE:
@@ -68,6 +68,8 @@ def run_walk_forward_backtest(dataset: list[dict], horizons: dict[str, int]) -> 
             "return_mae": round(mae_return, 6),
             "drawdown_mae": round(mae_drawdown, 6),
             "path_accuracy": round(path_accuracy, 4),
+            "train_window_days": TRAIN_WINDOW,
+            "neighbors": NEIGHBORS,
         }
 
     return summary

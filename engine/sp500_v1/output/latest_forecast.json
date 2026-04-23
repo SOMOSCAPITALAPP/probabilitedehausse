@@ -1,0 +1,49 @@
+{
+  "asset": "SPX",
+  "asset_name": "S&P 500",
+  "input_source": "C:\\Users\\olivo\\Documents\\Codex\\2026-04-22-je-veux-lancer-une-application-g\\data\\manual\\SPX_CLOSE.csv",
+  "history_start": "1970-01-02",
+  "history_end": "2026-04-22",
+  "input_rows": 14197,
+  "train_window_days": 2520,
+  "neighbors": 7,
+  "as_of_date": "2026-04-22",
+  "close": 7137.89990234375,
+  "features": {
+    "ret_1d": 1.046008,
+    "mom_5d": 1.636772,
+    "mom_21d": 8.462238,
+    "mom_63d": 3.814635,
+    "vol_21d": 17.387154,
+    "drawdown_63d": 0.0,
+    "dist_ma_20d": 5.374995,
+    "intraday_range_pct": 0.500567,
+    "gap_open_pct": 0.550684,
+    "atr_14d_pct": 1.129164,
+    "close_in_range": 0.979283,
+    "volume_ratio_20d": 0.560643
+  },
+  "forecasts": {
+    "5D": {
+      "upside_probability": 0.7143,
+      "expected_return": 0.0064,
+      "expected_drawdown": -0.0047,
+      "path_label": "range_then_rise",
+      "neighbors_used": 7
+    },
+    "21D": {
+      "upside_probability": 0.7143,
+      "expected_return": 0.0127,
+      "expected_drawdown": -0.0192,
+      "path_label": "steady_uptrend",
+      "neighbors_used": 7
+    },
+    "63D": {
+      "upside_probability": 0.8571,
+      "expected_return": 0.0604,
+      "expected_drawdown": -0.0354,
+      "path_label": "drawdown_then_recovery",
+      "neighbors_used": 7
+    }
+  }
+}

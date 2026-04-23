@@ -22,6 +22,7 @@ export default async function DashboardPage() {
           <nav className="desktop-nav" aria-label="Navigation principale">
             <a href="/">Landing</a>
             <a href="/dashboard">Dashboard</a>
+            <a href="/backtest">Backtest</a>
           </nav>
 
           <div className="nav-actions">

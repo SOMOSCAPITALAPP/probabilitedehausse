@@ -137,6 +137,7 @@ export default function HomePage() {
             <a href="#coverage">Univers</a>
             <a href="#faq">FAQ</a>
             <a href="/dashboard">Dashboard</a>
+            <a href="/backtest">Backtest</a>
           </nav>
 
           <div className="nav-actions">
