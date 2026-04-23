@@ -15,3 +15,4 @@ pnpm-debug.log*
 *.tsbuildinfo
 __pycache__/
 *.pyc
+engine/sp500_v1/output/
