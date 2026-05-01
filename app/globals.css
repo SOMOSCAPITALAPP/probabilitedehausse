@@ -1431,6 +1431,26 @@ h3 {
   stroke-linejoin: round;
 }
 
+.curve-mean-line {
+  fill: none;
+  stroke: #9bc4ff;
+  stroke-width: 2.5;
+  stroke-dasharray: 10 8;
+}
+
+.curve-band-line {
+  fill: none;
+  stroke: rgba(255, 213, 140, 0.9);
+  stroke-width: 2;
+  stroke-dasharray: 6 8;
+}
+
+.curve-history-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 2.5;
+}
+
 .curve-anchor {
   fill: #9bc4ff;
 }

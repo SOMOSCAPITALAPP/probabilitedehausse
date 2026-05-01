@@ -3,10 +3,11 @@ import {
   assetAnnualMean,
   assetAverageVolatility,
   assetCurrentVolatility,
-  buildProjectedPathSeries,
+  buildAssetPathStudy,
   findAssetForecast,
   formatPercent,
   formatSignedPercent,
+  getAssetHistory,
   getForecasts,
   groupForecastsByAsset,
   horizonLabel,
@@ -35,15 +36,12 @@ function riskTone(label) {
   return "risk-low";
 }
 
-function curvePath(points, width, height, padding) {
-  const values = points.map((point) => point.cumulative);
-  const min = Math.min(...values, 0);
-  const max = Math.max(...values, 0);
+function curvePath(points, width, height, padding, min, max) {
   const span = Math.max(0.0001, max - min);
 
   const coords = points.map((point) => {
     const x = padding + (point.day / 252) * (width - padding * 2);
-    const y = height - padding - ((point.cumulative - min) / span) * (height - padding * 2);
+    const y = height - padding - ((point.value - min) / span) * (height - padding * 2);
     return [x, y];
   });
 
@@ -64,6 +62,7 @@ export default async function AssetDashboardPage({ params }) {
   const { forecasts, updatedAt } = await getForecasts();
   const assets = groupForecastsByAsset(forecasts);
   const asset = findAssetForecast(assets, assetCode);
+  const historyRows = await getAssetHistory(assetCode);
 
   if (!asset) {
     return (
@@ -82,15 +81,29 @@ export default async function AssetDashboardPage({ params }) {
     );
   }
 
-  const pathModel = buildProjectedPathSeries(asset);
+  const pathModel = buildAssetPathStudy(asset, historyRows);
   const width = 920;
   const height = 320;
   const padding = 26;
-  const path = curvePath(pathModel.points, width, height, padding);
+  const annualMean = pathModel?.meanAnnualReturn ?? assetAnnualMean(asset);
+  const averageVol = pathModel?.averageVol ?? assetAverageVolatility(asset);
+  const currentVol = pathModel?.currentVol ?? assetCurrentVolatility(asset);
+
+  const allSeries = [
+    ...(pathModel?.baseLine ?? []),
+    ...(pathModel?.upperLine ?? []),
+    ...(pathModel?.lowerLine ?? []),
+    ...(pathModel?.projectedSeries ?? []),
+    ...(pathModel?.trailingSeries ?? []),
+  ];
+  const valueMin = allSeries.length ? Math.min(...allSeries.map((point) => point.value), 0) : -0.2;
+  const valueMax = allSeries.length ? Math.max(...allSeries.map((point) => point.value), 0) : 0.2;
   const axis = axisLabels(width, height, padding);
-  const annualMean = assetAnnualMean(asset);
-  const averageVol = assetAverageVolatility(asset);
-  const currentVol = assetCurrentVolatility(asset);
+  const projectedPath = pathModel ? curvePath(pathModel.projectedSeries, width, height, padding, valueMin, valueMax) : "";
+  const basePath = pathModel ? curvePath(pathModel.baseLine, width, height, padding, valueMin, valueMax) : "";
+  const upperPath = pathModel ? curvePath(pathModel.upperLine, width, height, padding, valueMin, valueMax) : "";
+  const lowerPath = pathModel ? curvePath(pathModel.lowerLine, width, height, padding, valueMin, valueMax) : "";
+  const trailingPath = pathModel ? curvePath(pathModel.trailingSeries, width, height, padding, valueMin, valueMax) : "";
 
   return (
     <main className="dashboard-shell dashboard-clean-shell">
@@ -147,7 +160,15 @@ export default async function AssetDashboardPage({ params }) {
               </div>
               <div>
                 <span className="status-label">Longueur de chemin</span>
-                <strong>{formatPercent(pathModel.pathLength, 0)}</strong>
+                <strong>{formatPercent(pathModel?.targetPathLength ?? 0, 0)}</strong>
+              </div>
+              <div>
+                <span className="status-label">Chemin hist. moyen</span>
+                <strong>{formatPercent(pathModel?.meanHistoricalPath ?? 0, 0)}</strong>
+              </div>
+              <div>
+                <span className="status-label">Chemin derniere annee</span>
+                <strong>{formatPercent(pathModel?.lastYearPath ?? 0, 0)}</strong>
               </div>
             </aside>
           </div>
@@ -168,20 +189,21 @@ export default async function AssetDashboardPage({ params }) {
               <svg viewBox={`0 0 ${width} ${height}`} className="asset-curve-chart" role="img" aria-label="Projected 1-year path">
                 <line x1={axis.x0} y1={axis.y0} x2={axis.x1} y2={axis.y0} className="curve-axis" />
                 <line x1={axis.x0} y1={axis.y1} x2={axis.x0} y2={axis.y0} className="curve-axis" />
-                <path d={path} className="curve-line" />
-                {pathModel.anchors.map((anchor) => {
-                  const x = padding + (anchor.day / 252) * (width - padding * 2);
-                  const values = pathModel.points.map((point) => point.cumulative);
-                  const min = Math.min(...values, 0);
-                  const max = Math.max(...values, 0);
-                  const span = Math.max(0.0001, max - min);
-                  const y = height - padding - ((anchor.cumulative - min) / span) * (height - padding * 2);
-                  return <circle key={`anchor-${anchor.day}`} cx={x} cy={y} r="4.5" className="curve-anchor" />;
-                })}
+                {pathModel ? (
+                  <>
+                    <path d={upperPath} className="curve-band-line" />
+                    <path d={lowerPath} className="curve-band-line" />
+                    <path d={basePath} className="curve-mean-line" />
+                    <path d={trailingPath} className="curve-history-line" />
+                    <path d={projectedPath} className="curve-line" />
+                  </>
+                ) : null}
               </svg>
               <div className="asset-curve-legend">
-                <span>Ancres: 5D, 21D, 63D, 1Y</span>
-                <span>Lecture prudente deformee par les probabilites</span>
+                <span>Moyenne historique lineaire</span>
+                <span>Faisceau moyenne ± 2 ecarts-types</span>
+                <span>Chemin de la derniere annee</span>
+                <span>Projection a 1 an</span>
               </div>
             </div>
           </article>
