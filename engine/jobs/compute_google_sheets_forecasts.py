@@ -235,7 +235,7 @@ def build_horizon_frame(history_rows: list[dict], horizon_days: int) -> pd.DataF
             "future_drawdown": future_drawdowns,
             "future_path_label": future_paths,
         }
-    ).dropna(subset=["trailing_return", "future_return", "future_drawdown"])
+    ).dropna(subset=["trailing_return"])
 
     if frame.empty:
         return frame
@@ -282,7 +282,7 @@ def compute_horizon_forecast(asset: AssetRow, history_rows: list[dict], horizon_
     historical_vol = float(frame.iloc[-1]["historical_vol"])
     z_current = float(frame.iloc[-1]["z_score"])
 
-    training_frame = frame.iloc[:-1].copy()
+    training_frame = frame.dropna(subset=["future_return", "future_drawdown", "future_path_label"]).copy()
     if len(training_frame) < max(100, horizon_days):
         return None
 
