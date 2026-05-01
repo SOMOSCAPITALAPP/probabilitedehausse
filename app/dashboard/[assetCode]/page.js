@@ -166,8 +166,8 @@ export default async function AssetDashboardPage({ params }) {
               <p className="hero-text dashboard-clean-copy">
                 Le graphique ci-dessous est rebased a 100 au point de depart. Il projette ensuite un chemin
                 quotidien sur 1 an a partir de la moyenne historique, de la volatilite moyenne, d'une
-                estimation de volatilite actuelle et des probabilites deja calculees sur les horizons 5 jours
-                a 1 an.
+                estimation de volatilite actuelle, du chemin quotidien reel de la derniere annee et des
+                probabilites deja calculees sur les horizons 5 jours a 1 an.
               </p>
               <p className="hero-text dashboard-clean-copy">
                 La courbe grise correspond au chemin reel de la derniere annee. La courbe verte epaisse
