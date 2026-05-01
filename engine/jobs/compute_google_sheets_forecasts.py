@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 import math
@@ -20,31 +21,62 @@ from update_google_sheets_history import (
     DAILY_PRICES_HEADERS,
     MACRO_DAILY_HEADERS,
     ensure_worksheet,
-    existing_keys,
     google_client,
     open_spreadsheet,
     read_assets,
 )
 
-from engine.sp500_v1.config import FEATURE_COLUMNS, HORIZONS, NEIGHBORS, TRAIN_WINDOW
-from engine.sp500_v1.feature_engineering import build_dataset
-from engine.sp500_v1.model import find_neighbors, summarize_neighbors
+from engine.sp500_v1.feature_engineering import classify_path, future_max_drawdown
 
 
 PARIS_TZ = ZoneInfo("Europe/Paris")
+MODEL_VERSION = "gaussian_regression_v2"
+HORIZON_SPECS = [
+    ("5D", 5),
+    ("21D", 21),
+    ("63D", 63),
+    ("1Y", 252),
+    ("3Y", 756),
+    ("5Y", 1260),
+    ("10Y", 2520),
+]
 FORECAST_HEADERS = [
     "run_date",
     "asset_code",
+    "asset_name",
     "horizon",
-    "upside_probability",
+    "horizon_days",
+    "trailing_return",
+    "historical_mean",
+    "historical_vol",
+    "z_score",
     "expected_return",
+    "upside_probability",
     "expected_drawdown",
-    "path_label",
     "confidence_label",
+    "path_label",
+    "sample_size",
+    "neighbor_count",
     "model_version",
     "computed_at",
 ]
-MODEL_VERSION = "google_sheets_v1"
+
+
+@dataclass
+class HorizonForecast:
+    horizon_code: str
+    horizon_days: int
+    trailing_return: float
+    historical_mean: float
+    historical_vol: float
+    z_score: float
+    expected_return: float
+    upside_probability: float
+    expected_drawdown: float
+    confidence_label: str
+    path_label: str
+    sample_size: int
+    neighbor_count: int
 
 
 def now_paris() -> datetime:
@@ -80,7 +112,7 @@ def rewrite_forecasts_for_run_date(worksheet, today: str, new_rows: list[list[st
 
     final_rows = [headers] + preserved_rows + new_rows
     worksheet.clear()
-    worksheet.update(range_name=f"A1:J{len(final_rows)}", values=final_rows)
+    worksheet.update(range_name=f"A1:R{len(final_rows)}", values=final_rows)
     return len(new_rows)
 
 
@@ -159,96 +191,191 @@ def build_macro_rows(frame: pd.DataFrame) -> list[dict]:
     return rows
 
 
-def confidence_label(history_length: int, labeled_samples: int) -> str:
-    if history_length >= 2520 and labeled_samples >= 1260:
-        return "high"
-    if history_length >= 1260 and labeled_samples >= 504:
-        return "medium"
-    return "low"
+def normal_cdf(value: float) -> float:
+    return 0.5 * (1.0 + math.erf(value / math.sqrt(2.0)))
 
 
-def neighbor_dispersion(neighbors: list[dict], horizon_name: str) -> tuple[float | None, float | None]:
-    labels = [row["labels"][horizon_name] for row in neighbors if horizon_name in row["labels"]]
-    if len(labels) < 2:
-        return None, None
-
-    returns = [label["future_return"] for label in labels]
-    drawdowns = [label["future_max_drawdown"] for label in labels]
-
-    mean_return = sum(returns) / len(returns)
-    mean_drawdown = sum(drawdowns) / len(drawdowns)
-
-    return_std = math.sqrt(sum((value - mean_return) ** 2 for value in returns) / len(returns))
-    drawdown_std = math.sqrt(sum((value - mean_drawdown) ** 2 for value in drawdowns) / len(drawdowns))
-    return return_std, drawdown_std
+def mean_std(series: pd.Series) -> tuple[float, float]:
+    mean = float(series.mean())
+    std = float(series.std(ddof=0))
+    return mean, std
 
 
-def refined_confidence_label(
-    history_length: int,
-    labeled_samples: int,
-    neighbors: list[dict],
-    horizon_name: str,
+def future_drawdown_from_slice(values: list[float]) -> float:
+    return float(future_max_drawdown(values))
+
+
+def build_horizon_frame(history_rows: list[dict], horizon_days: int) -> pd.DataFrame:
+    if len(history_rows) <= horizon_days * 2:
+        return pd.DataFrame()
+
+    closes = pd.Series([row["close"] for row in history_rows], dtype="float64")
+    dates = pd.Series([row["date"] for row in history_rows])
+
+    trailing = closes / closes.shift(horizon_days) - 1.0
+    future = closes.shift(-horizon_days) / closes - 1.0
+
+    future_drawdowns = []
+    future_paths = []
+    for index in range(len(closes)):
+        if index + horizon_days >= len(closes):
+            future_drawdowns.append(None)
+            future_paths.append(None)
+            continue
+        future_slice = closes.iloc[index : index + horizon_days + 1].tolist()
+        future_drawdowns.append(future_drawdown_from_slice(future_slice))
+        future_paths.append(classify_path(future_slice))
+
+    frame = pd.DataFrame(
+        {
+            "date": dates,
+            "close": closes,
+            "trailing_return": trailing,
+            "future_return": future,
+            "future_drawdown": future_drawdowns,
+            "future_path_label": future_paths,
+        }
+    ).dropna(subset=["trailing_return", "future_return", "future_drawdown"])
+
+    if frame.empty:
+        return frame
+
+    historical_mean, historical_vol = mean_std(frame["trailing_return"])
+    if historical_vol <= 0:
+        return pd.DataFrame()
+
+    frame["historical_mean"] = historical_mean
+    frame["historical_vol"] = historical_vol
+    frame["z_score"] = (frame["trailing_return"] - historical_mean) / historical_vol
+    return frame
+
+
+def fit_linear_regression(frame: pd.DataFrame) -> tuple[float, float, float]:
+    x = frame["z_score"].astype("float64")
+    y = frame["future_return"].astype("float64")
+
+    mean_x = float(x.mean())
+    mean_y = float(y.mean())
+    variance_x = float(((x - mean_x) ** 2).mean())
+    if variance_x <= 0:
+        alpha = mean_y
+        beta = 0.0
+        residual_std = float((y - mean_y).std(ddof=0)) or 1e-6
+        return alpha, beta, residual_std
+
+    covariance_xy = float(((x - mean_x) * (y - mean_y)).mean())
+    beta = covariance_xy / variance_x
+    alpha = mean_y - beta * mean_x
+    residuals = y - (alpha + beta * x)
+    residual_std = float(residuals.std(ddof=0)) or 1e-6
+    return alpha, beta, residual_std
+
+
+def choose_neighbor_count(sample_size: int) -> int:
+    return max(20, min(80, int(math.sqrt(sample_size) * 1.5)))
+
+
+def confidence_label(
+    sample_size: int,
+    historical_vol: float,
+    residual_std: float,
     upside_probability: float,
+    z_score: float,
 ) -> str:
-    base = confidence_label(history_length, labeled_samples)
-    return_std, drawdown_std = neighbor_dispersion(neighbors, horizon_name)
+    edge = abs(upside_probability - 0.5)
+    explanatory_power = 1.0 - min(1.0, residual_std / historical_vol) if historical_vol > 0 else 0.0
 
-    if base == "high":
-        if return_std is None or drawdown_std is None:
-            return "medium"
-        if return_std > 0.06 or drawdown_std > 0.05:
-            return "medium"
-        if 0.45 <= upside_probability <= 0.55:
-            return "medium"
+    if sample_size >= 1500 and edge >= 0.2 and explanatory_power >= 0.15 and abs(z_score) >= 0.75:
         return "high"
-
-    if base == "medium":
-        if return_std is not None and drawdown_std is not None and return_std < 0.03 and drawdown_std < 0.03:
-            if upside_probability <= 0.35 or upside_probability >= 0.65:
-                return "medium"
+    if sample_size >= 500 and edge >= 0.1:
         return "medium"
-
     return "low"
+
+
+def infer_path_label(neighbor_frame: pd.DataFrame) -> str:
+    counts = {}
+    for label in neighbor_frame["future_path_label"]:
+        counts[label] = counts.get(label, 0) + 1
+    return sorted(counts.items(), key=lambda item: (-item[1], item[0]))[0][0]
+
+
+def compute_horizon_forecast(asset: AssetRow, history_rows: list[dict], horizon_code: str, horizon_days: int) -> HorizonForecast | None:
+    frame = build_horizon_frame(history_rows, horizon_days)
+    if frame.empty or len(frame) < max(120, horizon_days * 2):
+        return None
+
+    current_trailing = float(frame.iloc[-1]["trailing_return"])
+    historical_mean = float(frame.iloc[-1]["historical_mean"])
+    historical_vol = float(frame.iloc[-1]["historical_vol"])
+    z_current = float(frame.iloc[-1]["z_score"])
+
+    training_frame = frame.iloc[:-1].copy()
+    if len(training_frame) < max(100, horizon_days):
+        return None
+
+    alpha, beta, residual_std = fit_linear_regression(training_frame)
+    expected_return = alpha + beta * z_current
+    upside_probability = 1.0 - normal_cdf((0.0 - expected_return) / residual_std)
+
+    neighbor_count = choose_neighbor_count(len(training_frame))
+    training_frame["z_distance"] = (training_frame["z_score"] - z_current).abs()
+    neighbor_frame = training_frame.nsmallest(neighbor_count, "z_distance")
+
+    expected_drawdown = float(neighbor_frame["future_drawdown"].median())
+    path_label = infer_path_label(neighbor_frame)
+    confidence = confidence_label(
+        len(training_frame),
+        historical_vol,
+        residual_std,
+        upside_probability,
+        z_current,
+    )
+
+    return HorizonForecast(
+        horizon_code=horizon_code,
+        horizon_days=horizon_days,
+        trailing_return=current_trailing,
+        historical_mean=historical_mean,
+        historical_vol=historical_vol,
+        z_score=z_current,
+        expected_return=float(expected_return),
+        upside_probability=float(max(0.0, min(1.0, upside_probability))),
+        expected_drawdown=expected_drawdown,
+        confidence_label=confidence,
+        path_label=path_label,
+        sample_size=len(training_frame),
+        neighbor_count=len(neighbor_frame),
+    )
 
 
 def forecast_rows_for_asset(asset: AssetRow, history_rows: list[dict], computed_at: str, today: str) -> list[list[str]]:
-    if len(history_rows) < 90:
-        return []
-
-    dataset = build_dataset(history_rows, HORIZONS)
-    if not dataset:
-        return []
-
-    latest = dataset[-1]
     output_rows: list[list[str]] = []
+    if len(history_rows) < 252:
+        return output_rows
 
-    for horizon_name in HORIZONS:
-        train_rows = [
-            row
-            for row in dataset[max(0, len(dataset) - TRAIN_WINDOW - 1):-1]
-            if horizon_name in row["labels"]
-        ]
-        neighbors = find_neighbors(train_rows, latest, FEATURE_COLUMNS, NEIGHBORS)
-        forecast = summarize_neighbors(neighbors, horizon_name)
-        if forecast["upside_probability"] is None:
+    for horizon_code, horizon_days in HORIZON_SPECS:
+        forecast = compute_horizon_forecast(asset, history_rows, horizon_code, horizon_days)
+        if forecast is None:
             continue
 
         output_rows.append(
             [
                 today,
                 asset.asset_code,
-                horizon_name,
-                str(round(forecast["upside_probability"], 6)),
-                str(round(forecast["expected_return"], 6)),
-                str(round(forecast["expected_drawdown"], 6)),
-                forecast["path_label"],
-                refined_confidence_label(
-                    len(history_rows),
-                    len(train_rows),
-                    neighbors,
-                    horizon_name,
-                    forecast["upside_probability"],
-                ),
+                asset.asset_name,
+                forecast.horizon_code,
+                str(forecast.horizon_days),
+                str(round(forecast.trailing_return, 6)),
+                str(round(forecast.historical_mean, 6)),
+                str(round(forecast.historical_vol, 6)),
+                str(round(forecast.z_score, 6)),
+                str(round(forecast.expected_return, 6)),
+                str(round(forecast.upside_probability, 6)),
+                str(round(forecast.expected_drawdown, 6)),
+                forecast.confidence_label,
+                forecast.path_label,
+                str(forecast.sample_size),
+                str(forecast.neighbor_count),
                 MODEL_VERSION,
                 computed_at,
             ]
@@ -289,7 +416,7 @@ def main() -> None:
     macro_frame = worksheet_dataframe(macro_ws)
     computed_at = now_iso()
     today = run_date()
-    rows_to_add: list[list[str]] = []
+    rows_to_write: list[list[str]] = []
     assets_forecasted = 0
 
     for asset in assets:
@@ -305,13 +432,10 @@ def main() -> None:
             print(f"[skip] insufficient history for {asset.asset_code}")
             continue
 
-        for row in forecast_rows:
-            rows_to_add.append(row)
+        rows_to_write.extend(forecast_rows)
+        assets_forecasted += 1
 
-        if forecast_rows:
-            assets_forecasted += 1
-
-    rows_written = rewrite_forecasts_for_run_date(forecasts_ws, today, rows_to_add)
+    rows_written = rewrite_forecasts_for_run_date(forecasts_ws, today, rows_to_write)
 
     print("Northcurve Google Sheets forecasts complete")
     print(f"- active assets: {len(assets)}")
