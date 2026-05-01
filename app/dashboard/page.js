@@ -1,5 +1,6 @@
 import {
   DASHBOARD_HORIZON_ORDER,
+  assetCurrentVolatility,
   formatPercent,
   formatSignedPercent,
   getForecasts,
@@ -7,7 +8,6 @@ import {
   horizonLabel,
   performanceTone,
   riskLabel,
-  zScoreTone,
 } from "../../lib/forecast-data";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +47,7 @@ export default async function DashboardPage() {
   const assets = groupForecastsByAsset(forecasts);
 
   const avgProbability = avg(forecasts.map((item) => Number(item.upside_probability ?? 0)));
-  const stretched = forecasts.filter((item) => Math.abs(Number(item.z_score ?? 0)) >= 1).length;
+  const avgCurrentVol = avg(assets.map((asset) => assetCurrentVolatility(asset)).filter((value) => Number.isFinite(value)));
   const lowProb = forecasts.filter((item) => Number(item.upside_probability ?? 0) <= 0.35).length;
 
   return (
@@ -77,10 +77,10 @@ export default async function DashboardPage() {
           <p className="eyebrow">Northcurve Dashboard</p>
           <div className="dashboard-clean-top">
             <div>
-              <h1 className="dashboard-clean-title">Past performance first. Forward probability second.</h1>
+              <h1 className="dashboard-clean-title">Performance passee, probabilite future, sans bruit inutile.</h1>
               <p className="hero-text dashboard-clean-copy">
-                Chaque actif est lu avec prudence. La performance recente est comparee a sa moyenne historique
-                sur le meme horizon, puis transformee en probabilite seche via une loi normale.
+                Chaque actif compare sa performance recente a sa norme historique. La probabilite de hausse
+                est volontairement prudente, puis declinée sur tous les horizons disponibles.
               </p>
             </div>
 
@@ -112,8 +112,8 @@ export default async function DashboardPage() {
               <strong>{avgProbability === null ? "--" : formatPercent(avgProbability, 0)}</strong>
             </article>
             <article className="summary-card">
-              <span className="status-label">Z-score etires</span>
-              <strong>{stretched}</strong>
+              <span className="status-label">Vol actuelle moy.</span>
+              <strong>{avgCurrentVol === null ? "--" : formatPercent(avgCurrentVol, 1)}</strong>
             </article>
             <article className="summary-card">
               <span className="status-label">Probabilites basses</span>
@@ -127,8 +127,8 @@ export default async function DashboardPage() {
         <div className="container">
           <div className="section-heading compact-heading">
             <p className="eyebrow">Asset table</p>
-            <h2>Une lecture stable et lisible.</h2>
-            <p>Un bloc par actif. Un tableau compact. Pas de debordement, pas de cartes inutiles.</p>
+            <h2>Une grille dense mais propre.</h2>
+            <p>Le detail graphique a 1 an s'ouvre sur chaque page actif.</p>
           </div>
 
           <div className="dashboard-clean-list">
@@ -152,7 +152,6 @@ export default async function DashboardPage() {
                         <th>Perf</th>
                         <th>Norme</th>
                         <th>Vol</th>
-                        <th>Z</th>
                         <th>Prob.</th>
                         <th>Drawdown</th>
                         <th>Risk</th>
@@ -166,7 +165,7 @@ export default async function DashboardPage() {
                           return (
                             <tr key={`${asset.asset_code}-${horizon}`}>
                               <td>{horizonLabel(horizon)}</td>
-                              <td colSpan={8} className="empty-cell">
+                              <td colSpan={7} className="empty-cell">
                                 --
                               </td>
                             </tr>
@@ -183,7 +182,6 @@ export default async function DashboardPage() {
                             </td>
                             <td>{formatSignedPercent(item.historical_mean, 1)}</td>
                             <td>{formatPercent(item.historical_vol, 1)}</td>
-                            <td className={zScoreTone(item.z_score)}>{item.z_score?.toFixed(2) ?? "--"}</td>
                             <td className={probabilityTone(item.upside_probability)}>
                               {formatPercent(item.upside_probability, 1)}
                             </td>
