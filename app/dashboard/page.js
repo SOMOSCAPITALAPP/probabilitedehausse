@@ -15,7 +15,7 @@ function sourceLabel(source) {
 }
 
 export default async function DashboardPage() {
-  const { forecasts, source, updatedAt } = await getForecasts();
+  const { forecasts, source, updatedAt, diagnostics = [] } = await getForecasts();
 
   return (
     <main className="dashboard-shell">
@@ -56,6 +56,12 @@ export default async function DashboardPage() {
               <strong>{sourceLabel(source)}</strong>
               <span className="status-label">Updated at</span>
               <strong>{updatedAt ? new Date(updatedAt).toLocaleString("fr-FR") : "Demo mode"}</strong>
+              {source === "demo" && diagnostics.length > 0 ? (
+                <>
+                  <span className="status-label">Diagnostics</span>
+                  <strong>{diagnostics[0]}</strong>
+                </>
+              ) : null}
             </div>
           </div>
         </div>
