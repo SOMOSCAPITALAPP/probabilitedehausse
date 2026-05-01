@@ -8,6 +8,12 @@ function confidenceTone(label) {
   return "confidence-low";
 }
 
+function sourceLabel(source) {
+  if (source === "google_sheets") return "Google Sheets";
+  if (source === "postgres") return "Local Postgres";
+  return "Demo fallback";
+}
+
 export default async function DashboardPage() {
   const { forecasts, source, updatedAt } = await getForecasts();
 
@@ -47,7 +53,7 @@ export default async function DashboardPage() {
 
             <div className="dashboard-status-card">
               <span className="status-label">Data source</span>
-              <strong>{source === "postgres" ? "Local Postgres" : "Demo fallback"}</strong>
+              <strong>{sourceLabel(source)}</strong>
               <span className="status-label">Updated at</span>
               <strong>{updatedAt ? new Date(updatedAt).toLocaleString("fr-FR") : "Demo mode"}</strong>
             </div>
