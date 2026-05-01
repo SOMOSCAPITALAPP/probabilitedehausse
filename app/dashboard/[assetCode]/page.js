@@ -27,18 +27,18 @@ function riskTone(label) {
 
 function probabilityTone(value) {
   const numeric = Number(value ?? 0);
-  if (numeric >= 0.6) return "prob-positive";
-  if (numeric <= 0.4) return "prob-negative";
+  if (numeric >= 0.65) return "prob-positive";
+  if (numeric <= 0.35) return "prob-negative";
   return "prob-neutral";
 }
 
-function regimeLabel(zScore) {
+function regimeCopy(zScore) {
   const numeric = Number(zScore ?? 0);
-  if (numeric >= 1.5) return "fortement étiré au-dessus de sa norme";
-  if (numeric >= 0.5) return "au-dessus de sa norme historique";
-  if (numeric <= -1.5) return "fortement étiré au-dessous de sa norme";
-  if (numeric <= -0.5) return "au-dessous de sa norme historique";
-  return "proche de sa norme historique";
+  if (numeric >= 1.5) return "tres au-dessus de sa norme";
+  if (numeric >= 0.5) return "au-dessus de sa norme";
+  if (numeric <= -1.5) return "tres au-dessous de sa norme";
+  if (numeric <= -0.5) return "au-dessous de sa norme";
+  return "proche de sa norme";
 }
 
 export default async function AssetDashboardPage({ params }) {
@@ -52,9 +52,9 @@ export default async function AssetDashboardPage({ params }) {
       <main className="dashboard-shell">
         <section className="section">
           <div className="container">
-            <p className="eyebrow">Northcurve Dashboard</p>
-            <h1 className="dashboard-title">Actif introuvable.</h1>
-            <p className="hero-text">Aucune lecture n’est disponible pour cet actif dans le dernier run.</p>
+            <p className="eyebrow">Northcurve</p>
+            <h1 className="dashboard-title dashboard-title-compact">Actif introuvable.</h1>
+            <p className="hero-text compact-copy">Aucune ligne n'est disponible pour cet actif dans le dernier run.</p>
             <a className="button button-secondary" href="/dashboard">
               Retour au dashboard
             </a>
@@ -65,25 +65,16 @@ export default async function AssetDashboardPage({ params }) {
   }
 
   const horizonRows = DASHBOARD_HORIZON_ORDER.map((horizon) => asset.horizons[horizon]).filter(Boolean);
-  const bestProbability = horizonRows.reduce(
-    (best, item) => (Number(item.upside_probability ?? 0) > Number(best?.upside_probability ?? -1) ? item : best),
-    null
-  );
-  const worstDrawdown = horizonRows.reduce(
-    (worst, item) =>
-      Math.abs(Number(item.expected_drawdown ?? 0)) > Math.abs(Number(worst?.expected_drawdown ?? 0)) ? item : worst,
-    null
-  );
 
   return (
-    <main className="dashboard-shell asset-detail-shell">
+    <main className="dashboard-shell">
       <header className="site-header">
         <div className="container nav-row">
           <a className="brand" href="/">
             Northcurve
           </a>
 
-          <nav className="desktop-nav" aria-label="Navigation principale">
+          <nav className="desktop-nav" aria-label="Main navigation">
             <a href="/">Landing</a>
             <a href="/dashboard">Dashboard</a>
             <a href="/backtest">Backtest</a>
@@ -91,145 +82,83 @@ export default async function AssetDashboardPage({ params }) {
 
           <div className="nav-actions">
             <a className="button button-secondary" href="/dashboard">
-              Retour au dashboard
+              Retour
             </a>
           </div>
         </div>
       </header>
 
-      <section className="section dashboard-hero">
+      <section className="section dashboard-hero dashboard-hero-compact">
         <div className="container">
-          <p className="eyebrow">Asset view</p>
-          <div className="dashboard-headline">
+          <p className="eyebrow">Asset detail</p>
+          <div className="dashboard-headline dashboard-headline-compact">
             <div>
               <p className="forecast-asset-code">{asset.asset_code}</p>
-              <h1 className="dashboard-title">{asset.asset_name}</h1>
-              <p className="hero-text">
-                Cette page sépare la performance déjà observée de la probabilité future. Pour chaque horizon,
-                Northcurve affiche la performance trailing, la moyenne historique, la volatilité historique, le
-                z-score actuel, puis la probabilité de hausse et le drawdown attendu.
+              <h1 className="dashboard-title dashboard-title-compact">{asset.asset_name}</h1>
+              <p className="hero-text compact-copy">
+                Ici la probabilite de hausse est volontairement prudente. Plus la performance trailing est au-dessus
+                de sa norme historique, plus la probabilite future se contracte.
               </p>
             </div>
 
             <div className="dashboard-status-card">
               <span className="status-label">Updated at</span>
               <strong>{updatedAt ? new Date(updatedAt).toLocaleString("fr-FR") : "--"}</strong>
-              <span className="status-label">Meilleure probabilité</span>
-              <strong>
-                {bestProbability ? `${horizonLabel(bestProbability.horizon)} · ${formatPercent(bestProbability.upside_probability, 1)}` : "--"}
-              </strong>
-              <span className="status-label">Risque maximal</span>
-              <strong>
-                {worstDrawdown ? `${horizonLabel(worstDrawdown.horizon)} · ${formatSignedPercent(worstDrawdown.expected_drawdown, 1)}` : "--"}
-              </strong>
+              <span className="status-label">Horizons disponibles</span>
+              <strong>{horizonRows.length}</strong>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="section asset-detail-section">
+      <section className="section dashboard-table-section dashboard-table-section-compact">
         <div className="container">
-          <div className="asset-detail-grid">
-            <section className="asset-panel">
-              <div className="asset-panel-heading">
-                <p className="eyebrow">Observed performance</p>
-                <h2>Performance réalisée</h2>
-                <p>Ce que l’actif a déjà produit sur chaque horizon glissant.</p>
-              </div>
-
-              <div className="performance-strip performance-strip-stacked">
-                {horizonRows.map((item) => (
-                  <div className="performance-chip performance-chip-detailed" key={`${asset.asset_code}-perf-${item.horizon}`}>
-                    <span>{horizonLabel(item.horizon)}</span>
-                    <strong className={performanceTone(item.trailing_return)}>
-                      {formatSignedPercent(item.trailing_return, 1)}
-                    </strong>
-                    <small>{regimeLabel(item.z_score)}</small>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="asset-panel">
-              <div className="asset-panel-heading">
-                <p className="eyebrow">Calculation logic</p>
-                <h2>Référence statistique</h2>
-                <p>Chaque horizon compare la performance trailing actuelle à sa norme de long terme.</p>
-              </div>
-
-              <div className="asset-method-stack">
-                {horizonRows.map((item) => (
-                  <div className="method-card" key={`${asset.asset_code}-method-${item.horizon}`}>
-                    <div className="method-card-top">
-                      <strong>{horizonLabel(item.horizon)}</strong>
-                      <span className={`confidence-pill ${confidenceTone(item.confidence_label)}`}>
-                        {item.confidence_label} confidence
-                      </span>
-                    </div>
-                    <div className="method-metrics">
-                      <div>
-                        <span>Moyenne hist.</span>
-                        <strong>{formatSignedPercent(item.historical_mean, 1)}</strong>
-                      </div>
-                      <div>
-                        <span>Volatilité hist.</span>
-                        <strong>{formatPercent(item.historical_vol, 1)}</strong>
-                      </div>
-                      <div>
-                        <span>Z-score</span>
-                        <strong className={zScoreTone(item.z_score)}>{item.z_score?.toFixed(2) ?? "--"}</strong>
-                      </div>
-                      <div>
-                        <span>Échantillon</span>
-                        <strong>{item.sample_size ?? "--"}</strong>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+          <div className="section-heading compact-heading">
+            <p className="eyebrow">Horizon table</p>
+            <h2>Lecture complete de l'actif.</h2>
+            <p>Performance observee, norme historique, z-score, probabilite future et risque de drawdown.</p>
           </div>
 
-          <section className="section-heading asset-forward-heading">
-            <p className="eyebrow">Forward probabilities</p>
-            <h2>Probabilité future et risque de parcours</h2>
-            <p>
-              Ici, le modèle projette le prochain rendement à horizon équivalent en fonction du z-score actuel,
-              puis convertit cette espérance conditionnelle en probabilité de hausse.
-            </p>
-          </section>
-
-          <div className="asset-forward-table">
-            <div className="asset-forward-header">
+          <div className="detail-table-shell">
+            <div className="detail-table detail-table-header">
               <div>Horizon</div>
-              <div>Probabilité</div>
-              <div>Espérance</div>
+              <div>Perf</div>
+              <div>Norme</div>
+              <div>Vol</div>
+              <div>Z-score</div>
+              <div>Probabilite</div>
               <div>Drawdown</div>
-              <div>Risque</div>
-              <div>Trajectoire</div>
+              <div>Confiance</div>
             </div>
 
             {horizonRows.map((item) => {
               const risk = riskLabel(item.expected_drawdown);
               return (
-                <div className="asset-forward-row" key={`${asset.asset_code}-row-${item.horizon}`}>
+                <div className="detail-table" key={`${asset.asset_code}-${item.horizon}`}>
                   <div>
                     <strong>{horizonLabel(item.horizon)}</strong>
+                  </div>
+                  <div>
+                    <strong className={performanceTone(item.trailing_return)}>{formatSignedPercent(item.trailing_return, 1)}</strong>
+                  </div>
+                  <div>
+                    <strong>{formatSignedPercent(item.historical_mean, 1)}</strong>
+                  </div>
+                  <div>
+                    <strong>{formatPercent(item.historical_vol, 1)}</strong>
+                  </div>
+                  <div>
+                    <strong className={zScoreTone(item.z_score)}>{item.z_score?.toFixed(2) ?? "--"}</strong>
+                    <span className="detail-subcopy">{regimeCopy(item.z_score)}</span>
                   </div>
                   <div>
                     <strong className={probabilityTone(item.upside_probability)}>{formatPercent(item.upside_probability, 1)}</strong>
                   </div>
                   <div>
-                    <strong>{formatSignedPercent(item.expected_return, 1)}</strong>
+                    <strong className={riskTone(risk)}>{formatSignedPercent(item.expected_drawdown, 1)}</strong>
                   </div>
                   <div>
-                    <strong>{formatSignedPercent(item.expected_drawdown, 1)}</strong>
-                  </div>
-                  <div>
-                    <strong className={riskTone(risk)}>{risk}</strong>
-                  </div>
-                  <div>
-                    <span>{item.path_label}</span>
+                    <span className={`confidence-pill ${confidenceTone(item.confidence_label)}`}>{item.confidence_label}</span>
                   </div>
                 </div>
               );

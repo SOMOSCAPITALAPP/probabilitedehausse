@@ -30,7 +30,7 @@ from engine.sp500_v1.feature_engineering import classify_path, future_max_drawdo
 
 
 PARIS_TZ = ZoneInfo("Europe/Paris")
-MODEL_VERSION = "gaussian_regression_v2"
+MODEL_VERSION = "gaussian_tail_v3"
 HORIZON_SPECS = [
     ("5D", 5),
     ("21D", 21),
@@ -250,44 +250,17 @@ def build_horizon_frame(history_rows: list[dict], horizon_days: int) -> pd.DataF
     return frame
 
 
-def fit_linear_regression(frame: pd.DataFrame) -> tuple[float, float, float]:
-    x = frame["z_score"].astype("float64")
-    y = frame["future_return"].astype("float64")
-
-    mean_x = float(x.mean())
-    mean_y = float(y.mean())
-    variance_x = float(((x - mean_x) ** 2).mean())
-    if variance_x <= 0:
-        alpha = mean_y
-        beta = 0.0
-        residual_std = float((y - mean_y).std(ddof=0)) or 1e-6
-        return alpha, beta, residual_std
-
-    covariance_xy = float(((x - mean_x) * (y - mean_y)).mean())
-    beta = covariance_xy / variance_x
-    alpha = mean_y - beta * mean_x
-    residuals = y - (alpha + beta * x)
-    residual_std = float(residuals.std(ddof=0)) or 1e-6
-    return alpha, beta, residual_std
-
-
 def choose_neighbor_count(sample_size: int) -> int:
     return max(20, min(80, int(math.sqrt(sample_size) * 1.5)))
 
 
 def confidence_label(
     sample_size: int,
-    historical_vol: float,
-    residual_std: float,
-    upside_probability: float,
     z_score: float,
 ) -> str:
-    edge = abs(upside_probability - 0.5)
-    explanatory_power = 1.0 - min(1.0, residual_std / historical_vol) if historical_vol > 0 else 0.0
-
-    if sample_size >= 1500 and edge >= 0.2 and explanatory_power >= 0.15 and abs(z_score) >= 0.75:
+    if sample_size >= 2500 and abs(z_score) >= 1.0:
         return "high"
-    if sample_size >= 500 and edge >= 0.1:
+    if sample_size >= 1000:
         return "medium"
     return "low"
 
@@ -313,9 +286,8 @@ def compute_horizon_forecast(asset: AssetRow, history_rows: list[dict], horizon_
     if len(training_frame) < max(100, horizon_days):
         return None
 
-    alpha, beta, residual_std = fit_linear_regression(training_frame)
-    expected_return = alpha + beta * z_current
-    upside_probability = 1.0 - normal_cdf((0.0 - expected_return) / residual_std)
+    expected_return = historical_mean
+    upside_probability = 1.0 - normal_cdf(z_current)
 
     neighbor_count = choose_neighbor_count(len(training_frame))
     training_frame["z_distance"] = (training_frame["z_score"] - z_current).abs()
@@ -323,13 +295,7 @@ def compute_horizon_forecast(asset: AssetRow, history_rows: list[dict], horizon_
 
     expected_drawdown = float(neighbor_frame["future_drawdown"].median())
     path_label = infer_path_label(neighbor_frame)
-    confidence = confidence_label(
-        len(training_frame),
-        historical_vol,
-        residual_std,
-        upside_probability,
-        z_current,
-    )
+    confidence = confidence_label(len(training_frame), z_current)
 
     return HorizonForecast(
         horizon_code=horizon_code,

@@ -32,25 +32,12 @@ Colonnes exactes :
 date,asset_code,asset_name,open,high,low,close,adj_close,volume,unit,source,fetched_at
 ```
 
-Exemple :
-
-```text
-2026-05-01,SPX,S&P 500,7088.12,7128.44,7069.55,7119.30,7119.30,2450000000,index_points,yahoo,2026-05-01T00:10:00+02:00
-```
-
 ## Onglet `macro_daily`
 
 Colonnes exactes :
 
 ```text
 date,series_code,series_name,value,unit,source,fetched_at
-```
-
-Exemple :
-
-```text
-2026-05-01,US10Y,US 10Y Treasury Yield,4.31,percent,yahoo,2026-05-01T00:10:00+02:00
-2026-05-01,VIX,VIX Index,18.42,index_points,yahoo,2026-05-01T00:10:00+02:00
 ```
 
 ## Onglet `forecasts`
@@ -64,34 +51,34 @@ run_date,asset_code,asset_name,horizon,horizon_days,trailing_return,historical_m
 Exemple :
 
 ```text
-2026-05-01,SPX,S&P 500,21D,21,0.098000,0.008700,0.041200,2.168000,-0.006400,0.214000,-0.028100,medium,range_then_rise,2495,60,gaussian_regression_v2,2026-05-01T00:15:00+02:00
+2026-05-01,SPX,S&P 500,21D,21,0.098000,0.008700,0.041200,2.168000,0.008700,0.015200,-0.028100,medium,range_then_rise,2495,60,gaussian_tail_v3,2026-05-01T00:15:00+02:00
 ```
 
-## Règles simples
+## Regles simples
 
-- `assets` est le référentiel central.
-- `daily_prices` conserve l'historique complet des actifs de marché.
-- `macro_daily` conserve l'historique complet des taux, indices de volatilité et séries assimilées.
-- `forecasts` reçoit les sorties calculées par Python.
-- La clé logique est :
+- `assets` est le referentiel central.
+- `daily_prices` conserve l'historique complet des actifs de marche.
+- `macro_daily` conserve l'historique complet des taux, indices de volatilite et series assimilees.
+- `forecasts` recoit les sorties calculees par Python.
+- La cle logique est :
   - `date + asset_code` dans `daily_prices`
   - `date + series_code` dans `macro_daily`
 
 ## Recommandation MVP
 
-Pour démarrer proprement :
+Pour demarrer proprement :
 
 - remplis `assets`
-- laisse Python créer et maintenir `daily_prices`
-- laisse Python créer et maintenir `macro_daily`
-- écris les prévisions plus tard dans `forecasts`
+- laisse Python creer et maintenir `daily_prices`
+- laisse Python creer et maintenir `macro_daily`
+- ecris les previsions dans `forecasts`
 
-## Pré-requis Google
+## Pre-requis Google
 
-- crée un fichier Google Sheets nommé `Northcurve Data`
+- cree un fichier Google Sheets nomme `Northcurve Data`
 - ajoute les 4 onglets :
   - `assets`
   - `daily_prices`
   - `macro_daily`
   - `forecasts`
-- partage ce Google Sheet avec l'email du service account Google utilisé par le script Python
+- partage ce Google Sheet avec l'email du service account utilise par le script Python
