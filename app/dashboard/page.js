@@ -131,6 +131,26 @@ export default async function DashboardPage() {
             <p>Le detail graphique a 1 an s'ouvre sur chaque page actif.</p>
           </div>
 
+          <div className="methodology-grid dashboard-methodology-grid">
+            <div className="methodology-panel">
+              <h4>Chemin parcouru</h4>
+              <p>
+                Northcurve ne regarde pas seulement la performance finale. Le moteur mesure aussi le chemin
+                parcouru, c'est-a-dire la somme des variations quotidiennes absolues. Cette notion permet de
+                distinguer une hausse reguliere d'une hausse tres chaotique, meme si les deux finissent au
+                meme niveau.
+              </p>
+            </div>
+            <div className="methodology-panel">
+              <h4>Probabilites</h4>
+              <p>
+                Les probabilites sont calculees horizon par horizon en comparant la performance trailing a sa
+                moyenne historique et a sa volatilite historique. Plus l'actif est etire par rapport a sa
+                norme, plus la probabilite future baisse. Le choix de Northcurve est volontairement prudent.
+              </p>
+            </div>
+          </div>
+
           <div className="dashboard-clean-list">
             {assets.map((asset) => (
               <article className="asset-clean-card" key={asset.asset_code}>

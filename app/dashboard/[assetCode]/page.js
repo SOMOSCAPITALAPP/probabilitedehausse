@@ -1,5 +1,6 @@
 import {
   DASHBOARD_HORIZON_ORDER,
+  buildHistoricalHorizonMetrics,
   assetAnnualMean,
   assetAverageVolatility,
   assetCurrentVolatility,
@@ -78,12 +79,20 @@ function xForDay(day, width, padding) {
   return padding + (day / 252) * (width - padding * 2);
 }
 
+function annualizedDisplay(historyItem) {
+  if (!historyItem || historyItem.annualizedReturn === null || historyItem.annualizedReturn === undefined) {
+    return "--";
+  }
+  return formatSignedPercent(historyItem.annualizedReturn, 1);
+}
+
 export default async function AssetDashboardPage({ params }) {
   const { assetCode } = params;
   const { forecasts, updatedAt } = await getForecasts();
   const assets = groupForecastsByAsset(forecasts);
   const asset = findAssetForecast(assets, assetCode);
   const historyRows = await getAssetHistory(assetCode);
+  const historyMetrics = buildHistoricalHorizonMetrics(historyRows);
 
   if (!asset) {
     return (
@@ -115,7 +124,6 @@ export default async function AssetDashboardPage({ params }) {
     ...(pathModel?.upperLine ?? []),
     ...(pathModel?.lowerLine ?? []),
     ...(pathModel?.projectedSeries ?? []),
-    ...(pathModel?.trailingSeries ?? []),
   ];
   const valueMin = allSeries.length ? Math.min(...allSeries.map((point) => point.value), 100) : 80;
   const valueMax = allSeries.length ? Math.max(...allSeries.map((point) => point.value), 100) : 120;
@@ -124,7 +132,6 @@ export default async function AssetDashboardPage({ params }) {
   const basePath = pathModel ? curvePath(pathModel.baseLine, width, height, padding, valueMin, valueMax) : "";
   const upperPath = pathModel ? curvePath(pathModel.upperLine, width, height, padding, valueMin, valueMax) : "";
   const lowerPath = pathModel ? curvePath(pathModel.lowerLine, width, height, padding, valueMin, valueMax) : "";
-  const trailingPath = pathModel ? curvePath(pathModel.trailingSeries, width, height, padding, valueMin, valueMax) : "";
   const yTicks = chartTickValues(valueMin, valueMax, 4);
   const xTicks = [
     { day: 0, label: "0" },
@@ -170,10 +177,9 @@ export default async function AssetDashboardPage({ params }) {
                 probabilites deja calculees sur les horizons 5 jours a 1 an.
               </p>
               <p className="hero-text dashboard-clean-copy">
-                La courbe grise correspond au chemin reel de la derniere annee. La courbe verte epaisse
-                correspond a la projection prudente sur l'annee a venir. La droite bleue pointillee est la
-                moyenne historique lineaire, et les deux lignes sable tracent le faisceau moyenne ± 2
-                ecarts-types.
+                La courbe verte epaisse correspond a la projection prudente sur l'annee a venir. La droite
+                bleue pointillee est la moyenne historique lineaire, et les deux lignes sable tracent le
+                faisceau moyenne plus ou moins 2 ecarts-types.
               </p>
             </div>
 
@@ -244,16 +250,45 @@ export default async function AssetDashboardPage({ params }) {
                     <path d={upperPath} className="curve-band-line" />
                     <path d={lowerPath} className="curve-band-line" />
                     <path d={basePath} className="curve-mean-line" />
-                    <path d={trailingPath} className="curve-history-line" />
                     <path d={projectedPath} className="curve-line" />
                   </>
                 ) : null}
               </svg>
               <div className="asset-curve-legend">
                 <span><i className="legend-line legend-line-mean" />Moyenne historique lineaire</span>
-                <span><i className="legend-line legend-line-band" />Faisceau moyenne ± 2 ecarts-types</span>
-                <span><i className="legend-line legend-line-history" />Chemin reel de la derniere annee</span>
+                <span><i className="legend-line legend-line-band" />Faisceau moyenne plus ou moins 2 ecarts-types</span>
                 <span><i className="legend-line legend-line-projected" />Projection prudente a 1 an</span>
+              </div>
+            </div>
+          </article>
+
+          <article className="asset-clean-card methodology-card">
+            <div className="asset-clean-header">
+              <div>
+                <p className="forecast-asset-code">{asset.asset_code}</p>
+                <h3>Principes de lecture</h3>
+              </div>
+            </div>
+
+            <div className="methodology-grid">
+              <div className="methodology-panel">
+                <h4>Chemin parcouru</h4>
+                <p>
+                  La performance terminale ne suffit pas. Northcurve suit aussi le chemin parcouru, c'est-a-dire
+                  la somme des variations quotidiennes absolues sur la fenetre. Deux actifs peuvent finir a
+                  plus 10 pour cent sur un an avec des signatures de risque tres differentes. Cette notion sert
+                  a calibrer la nervosite visuelle et la largeur du scenario projete.
+                </p>
+              </div>
+
+              <div className="methodology-panel">
+                <h4>Probabilites prudentes</h4>
+                <p>
+                  La probabilite de hausse compare la performance trailing a sa moyenne historique et a sa
+                  volatilite historique sur chaque horizon. Plus un actif est etire au-dessus de sa norme,
+                  relativement a sa volatilite historique, plus la probabilite future baisse. Le cadre retenu
+                  ici est volontairement conservateur pour penaliser les extensions de marche.
+                </p>
               </div>
             </div>
           </article>
@@ -272,6 +307,7 @@ export default async function AssetDashboardPage({ params }) {
                   <tr>
                     <th>Horizon</th>
                     <th>Perf</th>
+                    <th>Perf ann.</th>
                     <th>Norme</th>
                     <th>Vol</th>
                     <th>Prob.</th>
@@ -283,25 +319,31 @@ export default async function AssetDashboardPage({ params }) {
                 <tbody>
                   {DASHBOARD_HORIZON_ORDER.map((horizon) => {
                     const item = asset.horizons[horizon];
+                    const historyItem = historyMetrics[horizon];
+
                     if (!item) {
                       return (
                         <tr key={`${asset.asset_code}-${horizon}`}>
                           <td>{horizonLabel(horizon)}</td>
-                          <td colSpan={7} className="empty-cell">
-                            --
+                          <td className={historyItem ? performanceTone(historyItem.trailingReturn) : "empty-cell"}>
+                            {historyItem ? formatSignedPercent(historyItem.trailingReturn, 1) : "--"}
                           </td>
+                          <td>{annualizedDisplay(historyItem)}</td>
+                          <td colSpan={6} className="empty-cell">--</td>
                         </tr>
                       );
                     }
 
                     const risk = riskLabel(item.expected_drawdown);
+                    const trailingValue = historyItem?.trailingReturn ?? item.trailing_return;
 
                     return (
                       <tr key={`${asset.asset_code}-${horizon}`}>
                         <td>{horizonLabel(horizon)}</td>
-                        <td className={performanceTone(item.trailing_return)}>
-                          {formatSignedPercent(item.trailing_return, 1)}
+                        <td className={performanceTone(trailingValue)}>
+                          {formatSignedPercent(trailingValue, 1)}
                         </td>
+                        <td>{annualizedDisplay(historyItem)}</td>
                         <td>{formatSignedPercent(item.historical_mean, 1)}</td>
                         <td>{formatPercent(item.historical_vol, 1)}</td>
                         <td className={probabilityTone(item.upside_probability)}>
