@@ -1423,6 +1423,26 @@ h3 {
   stroke-width: 1;
 }
 
+.curve-grid-line {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
+}
+
+.curve-grid-line-vertical {
+  stroke: rgba(255, 255, 255, 0.05);
+}
+
+.curve-tick-label {
+  fill: rgba(215, 227, 245, 0.82);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.curve-tick-label-y {
+  text-anchor: end;
+}
+
 .curve-line {
   fill: none;
   stroke: #7be3c2;
@@ -1463,6 +1483,38 @@ h3 {
   color: var(--muted);
   font-family: Arial, Helvetica, sans-serif;
   font-size: 0.9rem;
+}
+
+.asset-curve-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend-line {
+  display: inline-block;
+  width: 28px;
+  height: 0;
+  border-top: 3px solid currentColor;
+  border-radius: 999px;
+}
+
+.legend-line-mean {
+  color: #9bc4ff;
+  border-top-style: dashed;
+}
+
+.legend-line-band {
+  color: rgba(255, 213, 140, 0.95);
+  border-top-style: dashed;
+}
+
+.legend-line-history {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.legend-line-projected {
+  color: #7be3c2;
 }
 
 .prob-positive,

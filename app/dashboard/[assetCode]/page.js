@@ -57,6 +57,27 @@ function axisLabels(width, height, padding) {
   };
 }
 
+function chartTickValues(min, max, steps = 4) {
+  const safeMin = Math.min(min, 0);
+  const safeMax = Math.max(max, 0);
+  const span = safeMax - safeMin;
+
+  if (span <= 0.0001) {
+    return [safeMin, safeMax];
+  }
+
+  return Array.from({ length: steps + 1 }, (_, index) => safeMin + (span * index) / steps);
+}
+
+function yForValue(value, height, padding, min, max) {
+  const span = Math.max(0.0001, max - min);
+  return height - padding - ((value - min) / span) * (height - padding * 2);
+}
+
+function xForDay(day, width, padding) {
+  return padding + (day / 252) * (width - padding * 2);
+}
+
 export default async function AssetDashboardPage({ params }) {
   const { assetCode } = params;
   const { forecasts, updatedAt } = await getForecasts();
@@ -104,6 +125,14 @@ export default async function AssetDashboardPage({ params }) {
   const upperPath = pathModel ? curvePath(pathModel.upperLine, width, height, padding, valueMin, valueMax) : "";
   const lowerPath = pathModel ? curvePath(pathModel.lowerLine, width, height, padding, valueMin, valueMax) : "";
   const trailingPath = pathModel ? curvePath(pathModel.trailingSeries, width, height, padding, valueMin, valueMax) : "";
+  const yTicks = chartTickValues(valueMin, valueMax, 4);
+  const xTicks = [
+    { day: 0, label: "0" },
+    { day: 63, label: "3M" },
+    { day: 126, label: "6M" },
+    { day: 189, label: "9M" },
+    { day: 252, label: "1Y" },
+  ];
 
   return (
     <main className="dashboard-shell dashboard-clean-shell">
@@ -139,6 +168,12 @@ export default async function AssetDashboardPage({ params }) {
                 de la volatilite moyenne, d'une estimation de volatilite actuelle et des probabilites deja
                 calculees sur les horizons 5 jours a 1 an.
               </p>
+              <p className="hero-text dashboard-clean-copy">
+                La courbe grise correspond au chemin reel de la derniere annee. La courbe verte epaisse
+                correspond a la projection prudente sur l'annee a venir. La droite bleue pointillee est la
+                moyenne historique lineaire, et les deux lignes sable tracent le faisceau moyenne ± 2
+                ecarts-types.
+              </p>
             </div>
 
             <aside className="dashboard-clean-status">
@@ -159,16 +194,8 @@ export default async function AssetDashboardPage({ params }) {
                 <strong>{formatPercent(currentVol, 1)}</strong>
               </div>
               <div>
-                <span className="status-label">Longueur de chemin</span>
-                <strong>{formatPercent(pathModel?.targetPathLength ?? 0, 0)}</strong>
-              </div>
-              <div>
-                <span className="status-label">Chemin hist. moyen</span>
-                <strong>{formatPercent(pathModel?.meanHistoricalPath ?? 0, 0)}</strong>
-              </div>
-              <div>
-                <span className="status-label">Chemin derniere annee</span>
-                <strong>{formatPercent(pathModel?.lastYearPath ?? 0, 0)}</strong>
+                <span className="status-label">Perf derniere annee</span>
+                <strong>{formatSignedPercent(pathModel?.lastYearReturn ?? 0, 1)}</strong>
               </div>
             </aside>
           </div>
@@ -187,6 +214,28 @@ export default async function AssetDashboardPage({ params }) {
 
             <div className="asset-curve-shell">
               <svg viewBox={`0 0 ${width} ${height}`} className="asset-curve-chart" role="img" aria-label="Projected 1-year path">
+                {yTicks.map((tick) => {
+                  const y = yForValue(tick, height, padding, valueMin, valueMax);
+                  return (
+                    <g key={`y-${tick}`}>
+                      <line x1={axis.x0} y1={y} x2={axis.x1} y2={y} className="curve-grid-line" />
+                      <text x={axis.x0 - 10} y={y + 4} className="curve-tick-label curve-tick-label-y">
+                        {formatSignedPercent(tick, 0)}
+                      </text>
+                    </g>
+                  );
+                })}
+                {xTicks.map((tick) => {
+                  const x = xForDay(tick.day, width, padding);
+                  return (
+                    <g key={`x-${tick.day}`}>
+                      <line x1={x} y1={axis.y1} x2={x} y2={axis.y0} className="curve-grid-line curve-grid-line-vertical" />
+                      <text x={x} y={axis.y0 + 18} textAnchor="middle" className="curve-tick-label">
+                        {tick.label}
+                      </text>
+                    </g>
+                  );
+                })}
                 <line x1={axis.x0} y1={axis.y0} x2={axis.x1} y2={axis.y0} className="curve-axis" />
                 <line x1={axis.x0} y1={axis.y1} x2={axis.x0} y2={axis.y0} className="curve-axis" />
                 {pathModel ? (
@@ -200,10 +249,10 @@ export default async function AssetDashboardPage({ params }) {
                 ) : null}
               </svg>
               <div className="asset-curve-legend">
-                <span>Moyenne historique lineaire</span>
-                <span>Faisceau moyenne ± 2 ecarts-types</span>
-                <span>Chemin de la derniere annee</span>
-                <span>Projection a 1 an</span>
+                <span><i className="legend-line legend-line-mean" />Moyenne historique lineaire</span>
+                <span><i className="legend-line legend-line-band" />Faisceau moyenne ± 2 ecarts-types</span>
+                <span><i className="legend-line legend-line-history" />Chemin reel de la derniere annee</span>
+                <span><i className="legend-line legend-line-projected" />Projection prudente a 1 an</span>
               </div>
             </div>
           </article>
