@@ -58,8 +58,8 @@ function axisLabels(width, height, padding) {
 }
 
 function chartTickValues(min, max, steps = 4) {
-  const safeMin = Math.min(min, 0);
-  const safeMax = Math.max(max, 0);
+  const safeMin = Math.min(min, 100);
+  const safeMax = Math.max(max, 100);
   const span = safeMax - safeMin;
 
   if (span <= 0.0001) {
@@ -117,8 +117,8 @@ export default async function AssetDashboardPage({ params }) {
     ...(pathModel?.projectedSeries ?? []),
     ...(pathModel?.trailingSeries ?? []),
   ];
-  const valueMin = allSeries.length ? Math.min(...allSeries.map((point) => point.value), 0) : -0.2;
-  const valueMax = allSeries.length ? Math.max(...allSeries.map((point) => point.value), 0) : 0.2;
+  const valueMin = allSeries.length ? Math.min(...allSeries.map((point) => point.value), 100) : 80;
+  const valueMax = allSeries.length ? Math.max(...allSeries.map((point) => point.value), 100) : 120;
   const axis = axisLabels(width, height, padding);
   const projectedPath = pathModel ? curvePath(pathModel.projectedSeries, width, height, padding, valueMin, valueMax) : "";
   const basePath = pathModel ? curvePath(pathModel.baseLine, width, height, padding, valueMin, valueMax) : "";
@@ -164,9 +164,10 @@ export default async function AssetDashboardPage({ params }) {
               <p className="forecast-asset-code">{asset.asset_code}</p>
               <h1 className="dashboard-clean-title">{asset.asset_name}</h1>
               <p className="hero-text dashboard-clean-copy">
-                Le graphique ci-dessous projette un chemin quotidien a 1 an. Il part de la moyenne historique,
-                de la volatilite moyenne, d'une estimation de volatilite actuelle et des probabilites deja
-                calculees sur les horizons 5 jours a 1 an.
+                Le graphique ci-dessous est rebased a 100 au point de depart. Il projette ensuite un chemin
+                quotidien sur 1 an a partir de la moyenne historique, de la volatilite moyenne, d'une
+                estimation de volatilite actuelle et des probabilites deja calculees sur les horizons 5 jours
+                a 1 an.
               </p>
               <p className="hero-text dashboard-clean-copy">
                 La courbe grise correspond au chemin reel de la derniere annee. La courbe verte epaisse
@@ -220,7 +221,7 @@ export default async function AssetDashboardPage({ params }) {
                     <g key={`y-${tick}`}>
                       <line x1={axis.x0} y1={y} x2={axis.x1} y2={y} className="curve-grid-line" />
                       <text x={axis.x0 - 10} y={y + 4} className="curve-tick-label curve-tick-label-y">
-                        {formatSignedPercent(tick, 0)}
+                        {tick.toFixed(0)}
                       </text>
                     </g>
                   );
