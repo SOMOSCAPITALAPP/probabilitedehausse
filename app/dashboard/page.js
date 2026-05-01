@@ -18,6 +18,13 @@ function sourceLabel(source) {
   return "Demo fallback";
 }
 
+function probabilityTone(value) {
+  const numeric = Number(value ?? 0);
+  if (numeric >= 0.65) return "prob-positive";
+  if (numeric <= 0.35) return "prob-negative";
+  return "prob-neutral";
+}
+
 function confidenceTone(label) {
   if (label === "high") return "confidence-high";
   if (label === "medium") return "confidence-medium";
@@ -30,32 +37,21 @@ function riskTone(label) {
   return "risk-low";
 }
 
-function probabilityTone(value) {
-  const numeric = Number(value ?? 0);
-  if (numeric >= 0.65) return "prob-positive";
-  if (numeric <= 0.35) return "prob-negative";
-  return "prob-neutral";
-}
-
-function outlookTone(value) {
-  if (value >= 0.65) return "outcome-favorable";
-  if (value <= 0.35) return "outcome-defensive";
-  return "outcome-mixed";
+function avg(values) {
+  if (!values.length) return null;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
 export default async function DashboardPage() {
   const { forecasts, source, updatedAt, diagnostics = [] } = await getForecasts();
   const assets = groupForecastsByAsset(forecasts);
 
-  const averageProbability =
-    forecasts.length > 0
-      ? forecasts.reduce((sum, item) => sum + Number(item.upside_probability ?? 0), 0) / forecasts.length
-      : null;
-  const stretchedHorizons = forecasts.filter((item) => Math.abs(Number(item.z_score ?? 0)) >= 1).length;
-  const lowProbabilityHorizons = forecasts.filter((item) => Number(item.upside_probability ?? 0) <= 0.35).length;
+  const avgProbability = avg(forecasts.map((item) => Number(item.upside_probability ?? 0)));
+  const stretched = forecasts.filter((item) => Math.abs(Number(item.z_score ?? 0)) >= 1).length;
+  const lowProb = forecasts.filter((item) => Number(item.upside_probability ?? 0) <= 0.35).length;
 
   return (
-    <main className="dashboard-shell">
+    <main className="dashboard-shell dashboard-clean-shell">
       <header className="site-header">
         <div className="container nav-row">
           <a className="brand" href="/">
@@ -76,139 +72,133 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <section className="section dashboard-hero dashboard-hero-compact">
+      <section className="section dashboard-clean-hero">
         <div className="container">
           <p className="eyebrow">Northcurve Dashboard</p>
-          <div className="dashboard-headline dashboard-headline-compact">
+          <div className="dashboard-clean-top">
             <div>
-              <h1 className="dashboard-title dashboard-title-compact">Passé observe, probabilite future, horizon par horizon.</h1>
-              <p className="hero-text compact-copy">
-                Le moteur utilise une lecture prudente: la probabilite de hausse est la queue d'une loi normale
-                construite sur la moyenne et la volatilite historiques de l'horizon considere.
+              <h1 className="dashboard-clean-title">Past performance first. Forward probability second.</h1>
+              <p className="hero-text dashboard-clean-copy">
+                Chaque actif est lu avec prudence. La performance recente est comparee a sa moyenne historique
+                sur le meme horizon, puis transformee en probabilite seche via une loi normale.
               </p>
             </div>
 
-            <div className="dashboard-status-card">
-              <span className="status-label">Data source</span>
-              <strong>{sourceLabel(source)}</strong>
-              <span className="status-label">Updated at</span>
-              <strong>{updatedAt ? new Date(updatedAt).toLocaleString("fr-FR") : "Demo mode"}</strong>
+            <aside className="dashboard-clean-status">
+              <div>
+                <span className="status-label">Source</span>
+                <strong>{sourceLabel(source)}</strong>
+              </div>
+              <div>
+                <span className="status-label">Updated</span>
+                <strong>{updatedAt ? new Date(updatedAt).toLocaleString("fr-FR") : "Demo mode"}</strong>
+              </div>
               {diagnostics.length > 0 ? (
-                <>
+                <div>
                   <span className="status-label">Diagnostics</span>
                   <strong>{diagnostics[0]}</strong>
-                </>
+                </div>
               ) : null}
-            </div>
+            </aside>
           </div>
 
-          <div className="dashboard-summary-grid dashboard-summary-grid-compact">
+          <div className="dashboard-clean-summary">
             <article className="summary-card">
               <span className="status-label">Actifs</span>
               <strong>{assets.length}</strong>
             </article>
             <article className="summary-card">
-              <span className="status-label">Probabilite moyenne</span>
-              <strong>{averageProbability === null ? "--" : formatPercent(averageProbability, 0)}</strong>
+              <span className="status-label">Proba moyenne</span>
+              <strong>{avgProbability === null ? "--" : formatPercent(avgProbability, 0)}</strong>
             </article>
             <article className="summary-card">
-              <span className="status-label">Horizons etires</span>
-              <strong>{stretchedHorizons}</strong>
+              <span className="status-label">Z-score etires</span>
+              <strong>{stretched}</strong>
             </article>
             <article className="summary-card">
               <span className="status-label">Probabilites basses</span>
-              <strong>{lowProbabilityHorizons}</strong>
+              <strong>{lowProb}</strong>
             </article>
           </div>
         </div>
       </section>
 
-      <section className="section dashboard-table-section dashboard-table-section-compact">
+      <section className="section dashboard-clean-section">
         <div className="container">
           <div className="section-heading compact-heading">
-            <p className="eyebrow">Asset view</p>
-            <h2>Une lecture simple a parcourir.</h2>
-            <p>D'abord ce que l'actif a deja fait. Ensuite ce que le modele juge encore probable.</p>
+            <p className="eyebrow">Asset table</p>
+            <h2>Une lecture stable et lisible.</h2>
+            <p>Un bloc par actif. Un tableau compact. Pas de debordement, pas de cartes inutiles.</p>
           </div>
 
-          <div className="asset-dashboard-list compact-list">
+          <div className="dashboard-clean-list">
             {assets.map((asset) => (
-              <article className="asset-dashboard-card compact-card" key={asset.asset_code}>
-                <div className="asset-dashboard-header compact-header">
+              <article className="asset-clean-card" key={asset.asset_code}>
+                <div className="asset-clean-header">
                   <div>
                     <p className="forecast-asset-code">{asset.asset_code}</p>
                     <h3>{asset.asset_name}</h3>
                   </div>
                   <a className="button button-secondary compact-button" href={`/dashboard/${asset.asset_code}`}>
-                    Analyse detaillee
+                    Voir l'actif
                   </a>
                 </div>
 
-                <div className="asset-mini-section">
-                  <div className="asset-mini-heading">
-                    <span>Performance passee</span>
-                  </div>
-                  <div className="mini-horizon-grid">
-                    {DASHBOARD_HORIZON_ORDER.map((horizon) => {
-                      const item = asset.horizons[horizon];
-                      return (
-                        <div className="mini-horizon-card" key={`${asset.asset_code}-perf-${horizon}`}>
-                          <span>{horizonLabel(horizon)}</span>
-                          <strong className={item ? performanceTone(item.trailing_return) : ""}>
-                            {item ? formatSignedPercent(item.trailing_return, 1) : "--"}
-                          </strong>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                <div className="asset-clean-table-wrap">
+                  <table className="asset-clean-table">
+                    <thead>
+                      <tr>
+                        <th>Horizon</th>
+                        <th>Perf</th>
+                        <th>Norme</th>
+                        <th>Vol</th>
+                        <th>Z</th>
+                        <th>Prob.</th>
+                        <th>Drawdown</th>
+                        <th>Risk</th>
+                        <th>Conf.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {DASHBOARD_HORIZON_ORDER.map((horizon) => {
+                        const item = asset.horizons[horizon];
+                        if (!item) {
+                          return (
+                            <tr key={`${asset.asset_code}-${horizon}`}>
+                              <td>{horizonLabel(horizon)}</td>
+                              <td colSpan={8} className="empty-cell">
+                                --
+                              </td>
+                            </tr>
+                          );
+                        }
 
-                <div className="asset-mini-section">
-                  <div className="asset-mini-heading">
-                    <span>Probabilite future</span>
-                  </div>
-                  <div className="mini-horizon-grid">
-                    {DASHBOARD_HORIZON_ORDER.map((horizon) => {
-                      const item = asset.horizons[horizon];
-                      if (!item) {
+                        const risk = riskLabel(item.expected_drawdown);
+
                         return (
-                          <div className="mini-horizon-card mini-horizon-card-muted" key={`${asset.asset_code}-future-${horizon}`}>
-                            <span>{horizonLabel(horizon)}</span>
-                            <strong>--</strong>
-                          </div>
+                          <tr key={`${asset.asset_code}-${horizon}`}>
+                            <td>{horizonLabel(horizon)}</td>
+                            <td className={performanceTone(item.trailing_return)}>
+                              {formatSignedPercent(item.trailing_return, 1)}
+                            </td>
+                            <td>{formatSignedPercent(item.historical_mean, 1)}</td>
+                            <td>{formatPercent(item.historical_vol, 1)}</td>
+                            <td className={zScoreTone(item.z_score)}>{item.z_score?.toFixed(2) ?? "--"}</td>
+                            <td className={probabilityTone(item.upside_probability)}>
+                              {formatPercent(item.upside_probability, 1)}
+                            </td>
+                            <td>{formatSignedPercent(item.expected_drawdown, 1)}</td>
+                            <td className={riskTone(risk)}>{risk}</td>
+                            <td>
+                              <span className={`confidence-pill ${confidenceTone(item.confidence_label)}`}>
+                                {item.confidence_label}
+                              </span>
+                            </td>
+                          </tr>
                         );
-                      }
-
-                      const risk = riskLabel(item.expected_drawdown);
-                      return (
-                        <div className="mini-horizon-card mini-horizon-card-future" key={`${asset.asset_code}-future-${horizon}`}>
-                          <div className="mini-horizon-top">
-                            <span>{horizonLabel(horizon)}</span>
-                            <span className={`mini-state ${outlookTone(item.upside_probability)}`}>{formatPercent(item.upside_probability, 0)}</span>
-                          </div>
-                          <strong className={probabilityTone(item.upside_probability)}>{formatPercent(item.upside_probability, 1)}</strong>
-                          <div className="mini-metrics">
-                            <div>
-                              <span>Norme</span>
-                              <em>{formatSignedPercent(item.historical_mean, 1)}</em>
-                            </div>
-                            <div>
-                              <span>Z</span>
-                              <em className={zScoreTone(item.z_score)}>{item.z_score?.toFixed(2) ?? "--"}</em>
-                            </div>
-                            <div>
-                              <span>Risk</span>
-                              <em className={riskTone(risk)}>{risk}</em>
-                            </div>
-                            <div>
-                              <span>Conf.</span>
-                              <em className={confidenceTone(item.confidence_label)}>{item.confidence_label}</em>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </article>
             ))}

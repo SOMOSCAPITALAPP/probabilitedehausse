@@ -13,6 +13,13 @@ import {
 
 export const dynamic = "force-dynamic";
 
+function probabilityTone(value) {
+  const numeric = Number(value ?? 0);
+  if (numeric >= 0.65) return "prob-positive";
+  if (numeric <= 0.35) return "prob-negative";
+  return "prob-neutral";
+}
+
 function confidenceTone(label) {
   if (label === "high") return "confidence-high";
   if (label === "medium") return "confidence-medium";
@@ -23,13 +30,6 @@ function riskTone(label) {
   if (label === "high") return "risk-high";
   if (label === "medium") return "risk-medium";
   return "risk-low";
-}
-
-function probabilityTone(value) {
-  const numeric = Number(value ?? 0);
-  if (numeric >= 0.65) return "prob-positive";
-  if (numeric <= 0.35) return "prob-negative";
-  return "prob-neutral";
 }
 
 function regimeCopy(zScore) {
@@ -49,12 +49,12 @@ export default async function AssetDashboardPage({ params }) {
 
   if (!asset) {
     return (
-      <main className="dashboard-shell">
-        <section className="section">
+      <main className="dashboard-shell dashboard-clean-shell">
+        <section className="section dashboard-clean-section">
           <div className="container">
             <p className="eyebrow">Northcurve</p>
-            <h1 className="dashboard-title dashboard-title-compact">Actif introuvable.</h1>
-            <p className="hero-text compact-copy">Aucune ligne n'est disponible pour cet actif dans le dernier run.</p>
+            <h1 className="dashboard-clean-title">Actif introuvable.</h1>
+            <p className="hero-text dashboard-clean-copy">Aucune ligne disponible pour cet actif.</p>
             <a className="button button-secondary" href="/dashboard">
               Retour au dashboard
             </a>
@@ -64,10 +64,8 @@ export default async function AssetDashboardPage({ params }) {
     );
   }
 
-  const horizonRows = DASHBOARD_HORIZON_ORDER.map((horizon) => asset.horizons[horizon]).filter(Boolean);
-
   return (
-    <main className="dashboard-shell">
+    <main className="dashboard-shell dashboard-clean-shell">
       <header className="site-header">
         <div className="container nav-row">
           <a className="brand" href="/">
@@ -88,81 +86,97 @@ export default async function AssetDashboardPage({ params }) {
         </div>
       </header>
 
-      <section className="section dashboard-hero dashboard-hero-compact">
+      <section className="section dashboard-clean-hero">
         <div className="container">
           <p className="eyebrow">Asset detail</p>
-          <div className="dashboard-headline dashboard-headline-compact">
+          <div className="dashboard-clean-top">
             <div>
               <p className="forecast-asset-code">{asset.asset_code}</p>
-              <h1 className="dashboard-title dashboard-title-compact">{asset.asset_name}</h1>
-              <p className="hero-text compact-copy">
-                Ici la probabilite de hausse est volontairement prudente. Plus la performance trailing est au-dessus
-                de sa norme historique, plus la probabilite future se contracte.
+              <h1 className="dashboard-clean-title">{asset.asset_name}</h1>
+              <p className="hero-text dashboard-clean-copy">
+                Chaque horizon compare la performance trailing actuelle a sa distribution historique.
+                Plus le z-score est eleve, plus la probabilite future se contracte.
               </p>
             </div>
 
-            <div className="dashboard-status-card">
-              <span className="status-label">Updated at</span>
-              <strong>{updatedAt ? new Date(updatedAt).toLocaleString("fr-FR") : "--"}</strong>
-              <span className="status-label">Horizons disponibles</span>
-              <strong>{horizonRows.length}</strong>
-            </div>
+            <aside className="dashboard-clean-status">
+              <div>
+                <span className="status-label">Updated</span>
+                <strong>{updatedAt ? new Date(updatedAt).toLocaleString("fr-FR") : "--"}</strong>
+              </div>
+            </aside>
           </div>
         </div>
       </section>
 
-      <section className="section dashboard-table-section dashboard-table-section-compact">
+      <section className="section dashboard-clean-section">
         <div className="container">
-          <div className="section-heading compact-heading">
-            <p className="eyebrow">Horizon table</p>
-            <h2>Lecture complete de l'actif.</h2>
-            <p>Performance observee, norme historique, z-score, probabilite future et risque de drawdown.</p>
-          </div>
-
-          <div className="detail-table-shell">
-            <div className="detail-table detail-table-header">
-              <div>Horizon</div>
-              <div>Perf</div>
-              <div>Norme</div>
-              <div>Vol</div>
-              <div>Z-score</div>
-              <div>Probabilite</div>
-              <div>Drawdown</div>
-              <div>Confiance</div>
+          <div className="asset-clean-card">
+            <div className="asset-clean-header">
+              <div>
+                <p className="forecast-asset-code">{asset.asset_code}</p>
+                <h3>{asset.asset_name}</h3>
+              </div>
             </div>
 
-            {horizonRows.map((item) => {
-              const risk = riskLabel(item.expected_drawdown);
-              return (
-                <div className="detail-table" key={`${asset.asset_code}-${item.horizon}`}>
-                  <div>
-                    <strong>{horizonLabel(item.horizon)}</strong>
-                  </div>
-                  <div>
-                    <strong className={performanceTone(item.trailing_return)}>{formatSignedPercent(item.trailing_return, 1)}</strong>
-                  </div>
-                  <div>
-                    <strong>{formatSignedPercent(item.historical_mean, 1)}</strong>
-                  </div>
-                  <div>
-                    <strong>{formatPercent(item.historical_vol, 1)}</strong>
-                  </div>
-                  <div>
-                    <strong className={zScoreTone(item.z_score)}>{item.z_score?.toFixed(2) ?? "--"}</strong>
-                    <span className="detail-subcopy">{regimeCopy(item.z_score)}</span>
-                  </div>
-                  <div>
-                    <strong className={probabilityTone(item.upside_probability)}>{formatPercent(item.upside_probability, 1)}</strong>
-                  </div>
-                  <div>
-                    <strong className={riskTone(risk)}>{formatSignedPercent(item.expected_drawdown, 1)}</strong>
-                  </div>
-                  <div>
-                    <span className={`confidence-pill ${confidenceTone(item.confidence_label)}`}>{item.confidence_label}</span>
-                  </div>
-                </div>
-              );
-            })}
+            <div className="asset-clean-table-wrap">
+              <table className="asset-clean-table">
+                <thead>
+                  <tr>
+                    <th>Horizon</th>
+                    <th>Perf</th>
+                    <th>Norme</th>
+                    <th>Vol</th>
+                    <th>Z</th>
+                    <th>Prob.</th>
+                    <th>Drawdown</th>
+                    <th>Risk</th>
+                    <th>Conf.</th>
+                    <th>Lecture</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {DASHBOARD_HORIZON_ORDER.map((horizon) => {
+                    const item = asset.horizons[horizon];
+                    if (!item) {
+                      return (
+                        <tr key={`${asset.asset_code}-${horizon}`}>
+                          <td>{horizonLabel(horizon)}</td>
+                          <td colSpan={9} className="empty-cell">
+                            --
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    const risk = riskLabel(item.expected_drawdown);
+
+                    return (
+                      <tr key={`${asset.asset_code}-${horizon}`}>
+                        <td>{horizonLabel(horizon)}</td>
+                        <td className={performanceTone(item.trailing_return)}>
+                          {formatSignedPercent(item.trailing_return, 1)}
+                        </td>
+                        <td>{formatSignedPercent(item.historical_mean, 1)}</td>
+                        <td>{formatPercent(item.historical_vol, 1)}</td>
+                        <td className={zScoreTone(item.z_score)}>{item.z_score?.toFixed(2) ?? "--"}</td>
+                        <td className={probabilityTone(item.upside_probability)}>
+                          {formatPercent(item.upside_probability, 1)}
+                        </td>
+                        <td>{formatSignedPercent(item.expected_drawdown, 1)}</td>
+                        <td className={riskTone(risk)}>{risk}</td>
+                        <td>
+                          <span className={`confidence-pill ${confidenceTone(item.confidence_label)}`}>
+                            {item.confidence_label}
+                          </span>
+                        </td>
+                        <td className="detail-subcopy">{regimeCopy(item.z_score)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
