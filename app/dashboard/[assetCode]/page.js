@@ -434,55 +434,6 @@ export default async function AssetDashboardPage({ params }) {
             </article>
           ) : null}
 
-          <article className="asset-clean-card methodology-card">
-            <div className="asset-clean-header">
-              <div>
-                <p className="forecast-asset-code">{asset.asset_code}</p>
-                <h3>Principes de lecture</h3>
-              </div>
-            </div>
-
-              <div className="methodology-grid">
-                <div className="methodology-panel">
-                  <h4>Chemin parcouru</h4>
-                <p>
-                  La performance terminale ne suffit pas. Northcurve suit aussi le chemin parcouru, c'est-a-dire
-                  la somme des variations quotidiennes absolues sur la fenetre. Deux actifs peuvent finir a
-                  plus 10 pour cent sur un an avec des signatures de risque tres differentes. Cette notion sert
-                  a calibrer la nervosite visuelle et la largeur du scenario projete.
-                </p>
-              </div>
-
-                <div className="methodology-panel">
-                  <h4>Probabilites prudentes</h4>
-                  <p>
-                    La probabilite de hausse compare la performance trailing a sa moyenne historique et a sa
-                    volatilite historique sur chaque horizon. Plus un actif est etire au-dessus de sa norme,
-                    relativement a sa volatilite historique, plus la probabilite future baisse. Le cadre retenu
-                    ici est volontairement conservateur pour penaliser les extensions de marche.
-                  </p>
-                </div>
-
-                <div className="methodology-panel">
-                  <h4>Lecture multi-horizons</h4>
-                  <p>
-                    La table croise le passé observé et le futur probable. La colonne Perf mesure ce qui vient
-                    réellement de se produire. La colonne Norme rappelle la moyenne historique sur l'horizon.
-                    La probabilité est ensuite une lecture sèche et prudente de l'écart entre les deux.
-                  </p>
-                </div>
-
-                <div className="methodology-panel">
-                  <h4>Projection à un an</h4>
-                  <p>
-                    Le graphique de fin ne cherche pas à dessiner un prix exact. Il projette un indice base 100
-                    avec une nervosité quotidienne proche de l'historique récent, puis l'oriente avec la moyenne
-                    historique et les probabilités déjà calculées sur les horizons courts et intermédiaires.
-                  </p>
-                </div>
-              </div>
-            </article>
-
           <article className="asset-clean-card">
             <div className="asset-clean-header">
               <div>
@@ -605,6 +556,55 @@ export default async function AssetDashboardPage({ params }) {
                 <span><i className="legend-line legend-line-projected" />Projection prudente a 1 an</span>
                 <span><i className="legend-line legend-line-mean" />Moyenne historique lineaire</span>
                 <span><i className="legend-line legend-line-band" />Faisceau moyenne plus ou moins 2 ecarts-types</span>
+              </div>
+            </div>
+          </article>
+
+          <article className="asset-clean-card methodology-card">
+            <div className="asset-clean-header">
+              <div>
+                <p className="forecast-asset-code">{asset.asset_code}</p>
+                <h3>Principes de lecture</h3>
+              </div>
+            </div>
+
+            <div className="methodology-grid">
+              <div className="methodology-panel">
+                <h4>Chemin parcouru</h4>
+                <p>
+                  La performance terminale ne suffit pas. Northcurve suit aussi le chemin parcouru, c'est-a-dire
+                  la somme des variations quotidiennes absolues sur la fenetre. Deux actifs peuvent finir a
+                  plus 10 pour cent sur un an avec des signatures de risque tres differentes. Cette notion sert
+                  a calibrer la nervosite visuelle et la largeur du scenario projete.
+                </p>
+              </div>
+
+              <div className="methodology-panel">
+                <h4>Probabilites prudentes</h4>
+                <p>
+                  La probabilite de hausse compare la performance trailing a sa moyenne historique et a sa
+                  volatilite historique sur chaque horizon. Plus un actif est etire au-dessus de sa norme,
+                  relativement a sa volatilite historique, plus la probabilite future baisse. Le cadre retenu
+                  ici est volontairement conservateur pour penaliser les extensions de marche.
+                </p>
+              </div>
+
+              <div className="methodology-panel">
+                <h4>Lecture multi-horizons</h4>
+                <p>
+                  La table croise le passe observe et le futur probable. La colonne Perf mesure ce qui vient
+                  reellement de se produire. La colonne Norme rappelle la moyenne historique sur l'horizon.
+                  La probabilite est ensuite une lecture seche et prudente de l'ecart entre les deux.
+                </p>
+              </div>
+
+              <div className="methodology-panel">
+                <h4>Projection a un an</h4>
+                <p>
+                  Le graphique de fin ne cherche pas a dessiner un prix exact. Il projette un indice base 100
+                  avec une nervosite quotidienne proche de l'historique recent, puis l'oriente avec la moyenne
+                  historique et les probabilites deja calculees sur les horizons courts et intermediaires.
+                </p>
               </div>
             </div>
           </article>
