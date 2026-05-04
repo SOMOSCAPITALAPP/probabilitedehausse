@@ -6,11 +6,13 @@ import {
   assetCurrentVolatility,
   buildAssetPathStudy,
   buildBetaScenarioAnalysis,
+  buildBenchmarkRelativeStudy,
   findAssetForecast,
   formatPercent,
   formatSignedPercent,
   getAssetHistory,
   getForecasts,
+  getReferenceBenchmarkHistory,
   getYahooAssetSnapshot,
   groupForecastsByAsset,
   horizonLabel,
@@ -147,9 +149,11 @@ export default async function AssetDashboardPage({ params }) {
   const assets = groupForecastsByAsset(forecasts);
   const asset = findAssetForecast(assets, assetCode);
   const historyRows = await getAssetHistory(assetCode);
+  const benchmarkHistoryRows = await getReferenceBenchmarkHistory(asset);
   const historyMetrics = buildHistoricalHorizonMetrics(historyRows);
   const yahooSnapshot = await getYahooAssetSnapshot(asset);
   const scenarioAnalysis = buildBetaScenarioAnalysis(asset, yahooSnapshot);
+  const benchmarkStudy = buildBenchmarkRelativeStudy(asset, historyRows, benchmarkHistoryRows);
 
   if (!asset) {
     return (
@@ -319,6 +323,60 @@ export default async function AssetDashboardPage({ params }) {
                 <div className="snapshot-item">
                   <span>1y Target Est</span>
                   <strong>{formatDecimal(yahooSnapshot.targetPrice, 2)}</strong>
+                </div>
+              </div>
+            </article>
+          ) : null}
+
+          {benchmarkStudy ? (
+            <article className="asset-clean-card benchmark-card">
+              <div className="asset-clean-header">
+                <div>
+                  <p className="forecast-asset-code">{asset.asset_code}</p>
+                  <h3>Comportement sur 1 an vs S&amp;P 500</h3>
+                </div>
+                <span className={`outcome-pill ${performanceTone(benchmarkStudy.excessReturn)}`}>
+                  {benchmarkStudy.relativeLabel}
+                </span>
+              </div>
+
+              <div className="benchmark-grid">
+                <div className="benchmark-item">
+                  <span>{asset.asset_name}</span>
+                  <strong className={performanceTone(benchmarkStudy.assetReturn)}>
+                    {formatSignedPercent(benchmarkStudy.assetReturn, 1)}
+                  </strong>
+                </div>
+                <div className="benchmark-item">
+                  <span>{benchmarkStudy.benchmarkName}</span>
+                  <strong className={performanceTone(benchmarkStudy.benchmarkReturn)}>
+                    {formatSignedPercent(benchmarkStudy.benchmarkReturn, 1)}
+                  </strong>
+                </div>
+                <div className="benchmark-item">
+                  <span>Surperformance</span>
+                  <strong className={performanceTone(benchmarkStudy.excessReturn)}>
+                    {formatSignedPercent(benchmarkStudy.excessReturn, 1)}
+                  </strong>
+                </div>
+                <div className="benchmark-item">
+                  <span>Beta realise</span>
+                  <strong>{benchmarkStudy.realizedBeta ? formatDecimal(benchmarkStudy.realizedBeta, 2) : "--"}</strong>
+                </div>
+              </div>
+
+              <div className="benchmark-grid benchmark-grid-secondary">
+                <div className="benchmark-item">
+                  <span>Jours de hausse du SPX surperformes</span>
+                  <strong>
+                    {benchmarkStudy.upCaptureShare !== null ? formatPercent(benchmarkStudy.upCaptureShare, 0) : "--"}
+                  </strong>
+                </div>
+                <div className="benchmark-item">
+                  <span>Jours de baisse du SPX mieux resistes</span>
+                  <strong>
+                    {benchmarkStudy.downCaptureShare !== null ? formatPercent(benchmarkStudy.downCaptureShare, 0) : "--"}
+                  </strong>
                 </div>
               </div>
             </article>

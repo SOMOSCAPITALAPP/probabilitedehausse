@@ -1559,6 +1559,45 @@ h3 {
   margin-bottom: 18px;
 }
 
+.benchmark-card {
+  margin-bottom: 18px;
+}
+
+.benchmark-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.benchmark-grid-secondary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.benchmark-item {
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.benchmark-item span {
+  display: block;
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+}
+
+.benchmark-item strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 1.12rem;
+  line-height: 1.25;
+}
+
 .scenario-card {
   margin-bottom: 18px;
 }
@@ -2431,6 +2470,7 @@ h3 {
 
   .dashboard-clean-top,
   .dashboard-clean-summary,
+  .benchmark-grid,
   .scenario-grid,
   .snapshot-grid,
   .methodology-grid {
