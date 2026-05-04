@@ -5,6 +5,7 @@ import {
   assetAverageVolatility,
   assetCurrentVolatility,
   buildAssetPathStudy,
+  buildBetaScenarioAnalysis,
   findAssetForecast,
   formatPercent,
   formatSignedPercent,
@@ -132,6 +133,14 @@ function formatPrice(value, currency = null) {
   return currency ? `${formatted} ${currency}` : formatted;
 }
 
+function scenarioBandTone(label) {
+  if (label === "high-upside") return "scenario-band-positive";
+  if (label === "constructive") return "scenario-band-constructive";
+  if (label === "high-downside") return "scenario-band-negative";
+  if (label === "fragile") return "scenario-band-fragile";
+  return "scenario-band-balanced";
+}
+
 export default async function AssetDashboardPage({ params }) {
   const { assetCode } = params;
   const { forecasts, updatedAt } = await getForecasts();
@@ -140,6 +149,7 @@ export default async function AssetDashboardPage({ params }) {
   const historyRows = await getAssetHistory(assetCode);
   const historyMetrics = buildHistoricalHorizonMetrics(historyRows);
   const yahooSnapshot = await getYahooAssetSnapshot(asset);
+  const scenarioAnalysis = buildBetaScenarioAnalysis(asset, yahooSnapshot);
 
   if (!asset) {
     return (
@@ -309,6 +319,58 @@ export default async function AssetDashboardPage({ params }) {
                 <div className="snapshot-item">
                   <span>1y Target Est</span>
                   <strong>{formatDecimal(yahooSnapshot.targetPrice, 2)}</strong>
+                </div>
+              </div>
+            </article>
+          ) : null}
+
+          {scenarioAnalysis ? (
+            <article className="asset-clean-card scenario-card">
+              <div className="asset-clean-header">
+                <div>
+                  <p className="forecast-asset-code">{asset.asset_code}</p>
+                  <h3>Interpretation scenario</h3>
+                </div>
+                <span className={`outcome-pill ${scenarioBandTone(scenarioAnalysis.probabilityBand)}`}>
+                  {scenarioAnalysis.profile}
+                </span>
+              </div>
+
+              <p className="scenario-intro">{scenarioAnalysis.commentary}</p>
+
+              <div className="scenario-grid">
+                <div className="scenario-panel">
+                  <div className="scenario-panel-top">
+                    <span>1 mois</span>
+                    <strong>Lecture beta + signal court terme</strong>
+                  </div>
+                  <div className="scenario-list">
+                    {scenarioAnalysis.oneMonthRows.map((row) => (
+                      <div key={`1m-${row.label}`} className="scenario-row">
+                        <span>{row.label}</span>
+                        <strong className={performanceTone(row.probableReturn)}>
+                          {formatSignedPercent(row.probableReturn, 1)}
+                        </strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="scenario-panel">
+                  <div className="scenario-panel-top">
+                    <span>1 an</span>
+                    <strong>Lecture beta + carry + profil global</strong>
+                  </div>
+                  <div className="scenario-list">
+                    {scenarioAnalysis.oneYearRows.map((row) => (
+                      <div key={`1y-${row.label}`} className="scenario-row">
+                        <span>{row.label}</span>
+                        <strong className={performanceTone(row.probableReturn)}>
+                          {formatSignedPercent(row.probableReturn, 1)}
+                        </strong>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </article>
