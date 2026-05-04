@@ -22,6 +22,21 @@ EURUSD,EUR/USD,fx,EURUSD=X,yahoo,daily_prices,fx_rate,TRUE
 BTCUSD,Bitcoin,crypto,BTC-USD,yahoo,daily_prices,usd,TRUE
 US10Y,US 10Y Treasury Yield,rates,^TNX,yahoo,macro_daily,percent,TRUE
 VIX,VIX Index,volatility,^VIX,yahoo,macro_daily,index_points,TRUE
+CAC40,CAC 40,equity_index,^FCHI,yahoo,daily_prices,index_points,TRUE
+DAX30,DAX,equity_index,^GDAXI,yahoo,daily_prices,index_points,TRUE
+SMI20,SMI 20,equity_index,^SSMI,yahoo,daily_prices,index_points,TRUE
+HANGSENG,Hang Seng,equity_index,^HSI,yahoo,daily_prices,index_points,TRUE
+XLK,Technology Select Sector SPDR,sector_index,XLK,yahoo,daily_prices,usd,TRUE
+XLF,Financial Select Sector SPDR,sector_index,XLF,yahoo,daily_prices,usd,TRUE
+XLE,Energy Select Sector SPDR,sector_index,XLE,yahoo,daily_prices,usd,TRUE
+XLV,Health Care Select Sector SPDR,sector_index,XLV,yahoo,daily_prices,usd,TRUE
+XLI,Industrial Select Sector SPDR,sector_index,XLI,yahoo,daily_prices,usd,TRUE
+XLP,Consumer Staples Select Sector SPDR,sector_index,XLP,yahoo,daily_prices,usd,TRUE
+XLY,Consumer Discretionary Select Sector SPDR,sector_index,XLY,yahoo,daily_prices,usd,TRUE
+XLB,Materials Select Sector SPDR,sector_index,XLB,yahoo,daily_prices,usd,TRUE
+XLU,Utilities Select Sector SPDR,sector_index,XLU,yahoo,daily_prices,usd,TRUE
+XLRE,Real Estate Select Sector SPDR,sector_index,XLRE,yahoo,daily_prices,usd,TRUE
+XLC,Communication Services Select Sector SPDR,sector_index,XLC,yahoo,daily_prices,usd,TRUE
 ```
 
 ## Onglet `daily_prices`
