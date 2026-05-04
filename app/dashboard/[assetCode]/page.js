@@ -121,6 +121,17 @@ function formatDividend(dividend, dividendYield) {
   return `${left} (${right})`;
 }
 
+function formatPrice(value, currency = null) {
+  if (value === null || value === undefined) return "--";
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "--";
+  const formatted = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: numeric >= 1000 ? 0 : 2,
+    maximumFractionDigits: numeric >= 1000 ? 0 : 2,
+  }).format(numeric);
+  return currency ? `${formatted} ${currency}` : formatted;
+}
+
 export default async function AssetDashboardPage({ params }) {
   const { assetCode } = params;
   const { forecasts, updatedAt } = await getForecasts();
@@ -154,6 +165,9 @@ export default async function AssetDashboardPage({ params }) {
   const annualMean = pathModel?.meanAnnualReturn ?? assetAnnualMean(asset);
   const averageVol = pathModel?.averageVol ?? assetAverageVolatility(asset);
   const currentVol = pathModel?.currentVol ?? assetCurrentVolatility(asset);
+  const latestClose = historyRows.length ? Number(historyRows[historyRows.length - 1]?.close ?? null) : null;
+  const latestPrice = yahooSnapshot?.currentPrice ?? latestClose;
+  const latestCurrency = yahooSnapshot?.currency ?? null;
 
   const allSeries = [
     ...(pathModel?.baseLine ?? []),
@@ -206,16 +220,23 @@ export default async function AssetDashboardPage({ params }) {
             <div>
               <p className="forecast-asset-code">{asset.asset_code}</p>
               <h1 className="dashboard-clean-title">{asset.asset_name}</h1>
+              <div className="asset-hero-price-row">
+                <div className="asset-hero-price-block">
+                  <span>Dernier cours</span>
+                  <strong>{formatPrice(latestPrice, latestCurrency)}</strong>
+                </div>
+                {latestClose !== null ? (
+                  <div className="asset-hero-price-block asset-hero-price-secondary">
+                    <span>Dernier close daily</span>
+                    <strong>{formatPrice(latestClose, latestCurrency)}</strong>
+                  </div>
+                ) : null}
+              </div>
               <p className="hero-text dashboard-clean-copy">
-                Le graphique ci-dessous est rebased a 100 au point de depart. Il projette ensuite un chemin
-                quotidien sur 1 an a partir de la moyenne historique, de la volatilite moyenne, d'une
-                estimation de volatilite actuelle, du chemin quotidien reel de la derniere annee et des
-                probabilites deja calculees sur les horizons 5 jours a 1 an.
-              </p>
-              <p className="hero-text dashboard-clean-copy">
-                La courbe verte epaisse correspond a la projection prudente sur l'annee a venir. La droite
-                bleue pointillee est la moyenne historique lineaire, et les deux lignes sable tracent le
-                faisceau moyenne plus ou moins 2 ecarts-types.
+                Cette fiche se lit en deux temps. D'abord les performances déjà réalisées et la lecture
+                probabiliste par horizon. Ensuite seulement la projection visuelle à un an, construite à
+                partir de la moyenne historique, de la volatilité moyenne, de la volatilité actuelle et du
+                chemin quotidien observé sur la dernière année.
               </p>
             </div>
 
@@ -248,11 +269,11 @@ export default async function AssetDashboardPage({ params }) {
       <section className="section dashboard-clean-section">
         <div className="container">
           {yahooSnapshot ? (
-            <article className="asset-clean-card snapshot-card">
+            <article className="asset-clean-card snapshot-card premium-profile-card">
               <div className="asset-clean-header">
                 <div>
                   <p className="forecast-asset-code">{asset.asset_code}</p>
-                  <h3>Yahoo snapshot</h3>
+                  <h3>Market profile</h3>
                 </div>
               </div>
 
@@ -293,57 +314,6 @@ export default async function AssetDashboardPage({ params }) {
             </article>
           ) : null}
 
-          <article className="asset-clean-card asset-curve-card">
-            <div className="asset-clean-header">
-              <div>
-                <p className="forecast-asset-code">{asset.asset_code}</p>
-                <h3>Projection quotidienne a 1 an</h3>
-              </div>
-            </div>
-
-            <div className="asset-curve-shell">
-              <svg viewBox={`0 0 ${width} ${height}`} className="asset-curve-chart" role="img" aria-label="Projected 1-year path">
-                {yTicks.map((tick) => {
-                  const y = yForValue(tick, height, padding, valueMin, valueMax);
-                  return (
-                    <g key={`y-${tick}`}>
-                      <line x1={axis.x0} y1={y} x2={axis.x1} y2={y} className="curve-grid-line" />
-                      <text x={axis.x0 - 10} y={y + 4} className="curve-tick-label curve-tick-label-y">
-                        {tick.toFixed(0)}
-                      </text>
-                    </g>
-                  );
-                })}
-                {xTicks.map((tick) => {
-                  const x = xForDay(tick.day, width, padding);
-                  return (
-                    <g key={`x-${tick.day}`}>
-                      <line x1={x} y1={axis.y1} x2={x} y2={axis.y0} className="curve-grid-line curve-grid-line-vertical" />
-                      <text x={x} y={axis.y0 + 18} textAnchor="middle" className="curve-tick-label">
-                        {tick.label}
-                      </text>
-                    </g>
-                  );
-                })}
-                <line x1={axis.x0} y1={axis.y0} x2={axis.x1} y2={axis.y0} className="curve-axis" />
-                <line x1={axis.x0} y1={axis.y1} x2={axis.x0} y2={axis.y0} className="curve-axis" />
-                {pathModel ? (
-                  <>
-                    <path d={upperPath} className="curve-band-line" />
-                    <path d={lowerPath} className="curve-band-line" />
-                    <path d={basePath} className="curve-mean-line" />
-                    <path d={projectedPath} className="curve-line" />
-                  </>
-                ) : null}
-              </svg>
-              <div className="asset-curve-legend">
-                <span><i className="legend-line legend-line-mean" />Moyenne historique lineaire</span>
-                <span><i className="legend-line legend-line-band" />Faisceau moyenne plus ou moins 2 ecarts-types</span>
-                <span><i className="legend-line legend-line-projected" />Projection prudente a 1 an</span>
-              </div>
-            </div>
-          </article>
-
           <article className="asset-clean-card methodology-card">
             <div className="asset-clean-header">
               <div>
@@ -352,9 +322,9 @@ export default async function AssetDashboardPage({ params }) {
               </div>
             </div>
 
-            <div className="methodology-grid">
-              <div className="methodology-panel">
-                <h4>Chemin parcouru</h4>
+              <div className="methodology-grid">
+                <div className="methodology-panel">
+                  <h4>Chemin parcouru</h4>
                 <p>
                   La performance terminale ne suffit pas. Northcurve suit aussi le chemin parcouru, c'est-a-dire
                   la somme des variations quotidiennes absolues sur la fenetre. Deux actifs peuvent finir a
@@ -363,17 +333,35 @@ export default async function AssetDashboardPage({ params }) {
                 </p>
               </div>
 
-              <div className="methodology-panel">
-                <h4>Probabilites prudentes</h4>
-                <p>
-                  La probabilite de hausse compare la performance trailing a sa moyenne historique et a sa
-                  volatilite historique sur chaque horizon. Plus un actif est etire au-dessus de sa norme,
-                  relativement a sa volatilite historique, plus la probabilite future baisse. Le cadre retenu
-                  ici est volontairement conservateur pour penaliser les extensions de marche.
-                </p>
+                <div className="methodology-panel">
+                  <h4>Probabilites prudentes</h4>
+                  <p>
+                    La probabilite de hausse compare la performance trailing a sa moyenne historique et a sa
+                    volatilite historique sur chaque horizon. Plus un actif est etire au-dessus de sa norme,
+                    relativement a sa volatilite historique, plus la probabilite future baisse. Le cadre retenu
+                    ici est volontairement conservateur pour penaliser les extensions de marche.
+                  </p>
+                </div>
+
+                <div className="methodology-panel">
+                  <h4>Lecture multi-horizons</h4>
+                  <p>
+                    La table croise le passé observé et le futur probable. La colonne Perf mesure ce qui vient
+                    réellement de se produire. La colonne Norme rappelle la moyenne historique sur l'horizon.
+                    La probabilité est ensuite une lecture sèche et prudente de l'écart entre les deux.
+                  </p>
+                </div>
+
+                <div className="methodology-panel">
+                  <h4>Projection à un an</h4>
+                  <p>
+                    Le graphique de fin ne cherche pas à dessiner un prix exact. Il projette un indice base 100
+                    avec une nervosité quotidienne proche de l'historique récent, puis l'oriente avec la moyenne
+                    historique et les probabilités déjà calculées sur les horizons courts et intermédiaires.
+                  </p>
+                </div>
               </div>
-            </div>
-          </article>
+            </article>
 
           <article className="asset-clean-card">
             <div className="asset-clean-header">
@@ -443,6 +431,61 @@ export default async function AssetDashboardPage({ params }) {
                   })}
                 </tbody>
               </table>
+            </div>
+          </article>
+
+          <article className="asset-clean-card asset-curve-card asset-curve-card-bottom">
+            <div className="asset-clean-header asset-curve-header">
+              <div>
+                <p className="forecast-asset-code">{asset.asset_code}</p>
+                <h3>Projection quotidienne a 1 an</h3>
+              </div>
+              <p className="asset-curve-header-copy">
+                Courbe verte: scénario prudent projeté. Droite bleue: moyenne historique linéaire.
+                Faisceau sable: moyenne plus ou moins 2 écarts-types.
+              </p>
+            </div>
+
+            <div className="asset-curve-shell">
+              <svg viewBox={`0 0 ${width} ${height}`} className="asset-curve-chart" role="img" aria-label="Projected 1-year path">
+                {yTicks.map((tick) => {
+                  const y = yForValue(tick, height, padding, valueMin, valueMax);
+                  return (
+                    <g key={`y-${tick}`}>
+                      <line x1={axis.x0} y1={y} x2={axis.x1} y2={y} className="curve-grid-line" />
+                      <text x={axis.x0 - 10} y={y + 4} className="curve-tick-label curve-tick-label-y">
+                        {tick.toFixed(0)}
+                      </text>
+                    </g>
+                  );
+                })}
+                {xTicks.map((tick) => {
+                  const x = xForDay(tick.day, width, padding);
+                  return (
+                    <g key={`x-${tick.day}`}>
+                      <line x1={x} y1={axis.y1} x2={x} y2={axis.y0} className="curve-grid-line curve-grid-line-vertical" />
+                      <text x={x} y={axis.y0 + 18} textAnchor="middle" className="curve-tick-label">
+                        {tick.label}
+                      </text>
+                    </g>
+                  );
+                })}
+                <line x1={axis.x0} y1={axis.y0} x2={axis.x1} y2={axis.y0} className="curve-axis" />
+                <line x1={axis.x0} y1={axis.y1} x2={axis.x0} y2={axis.y0} className="curve-axis" />
+                {pathModel ? (
+                  <>
+                    <path d={upperPath} className="curve-band-line" />
+                    <path d={lowerPath} className="curve-band-line" />
+                    <path d={basePath} className="curve-mean-line" />
+                    <path d={projectedPath} className="curve-line" />
+                  </>
+                ) : null}
+              </svg>
+              <div className="asset-curve-legend">
+                <span><i className="legend-line legend-line-projected" />Projection prudente a 1 an</span>
+                <span><i className="legend-line legend-line-mean" />Moyenne historique lineaire</span>
+                <span><i className="legend-line legend-line-band" />Faisceau moyenne plus ou moins 2 ecarts-types</span>
+              </div>
             </div>
           </article>
         </div>

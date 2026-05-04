@@ -1294,6 +1294,47 @@ h3 {
   margin-top: 18px;
 }
 
+.asset-hero-price-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.asset-hero-price-block {
+  min-width: 220px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(123, 227, 194, 0.2);
+  background: linear-gradient(180deg, rgba(123, 227, 194, 0.12), rgba(255, 255, 255, 0.03));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.asset-hero-price-block span,
+.asset-curve-header-copy {
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.asset-hero-price-block span {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.asset-hero-price-block strong {
+  display: block;
+  margin-top: 10px;
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  line-height: 1;
+}
+
+.asset-hero-price-secondary {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .dashboard-clean-status {
   display: grid;
   gap: 14px;
@@ -1398,6 +1439,22 @@ h3 {
   margin-bottom: 18px;
 }
 
+.asset-curve-card-bottom {
+  margin-top: 18px;
+}
+
+.asset-curve-header {
+  align-items: flex-end;
+}
+
+.asset-curve-header-copy {
+  max-width: 36ch;
+  margin: 0;
+  line-height: 1.65;
+  font-size: 0.92rem;
+  text-align: right;
+}
+
 .asset-curve-shell {
   margin-top: 18px;
 }
@@ -1406,9 +1463,11 @@ h3 {
   display: block;
   width: 100%;
   height: auto;
+  padding: 10px;
   border-radius: 18px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
+    radial-gradient(circle at top right, rgba(123, 227, 194, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
     repeating-linear-gradient(
       90deg,
       transparent 0,
@@ -1446,7 +1505,8 @@ h3 {
 .curve-line {
   fill: none;
   stroke: #7be3c2;
-  stroke-width: 3.5;
+  stroke-width: 4.5;
+  filter: drop-shadow(0 0 16px rgba(123, 227, 194, 0.35));
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -1497,6 +1557,23 @@ h3 {
 
 .snapshot-card {
   margin-bottom: 18px;
+}
+
+.premium-profile-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-profile-card::before {
+  content: "";
+  position: absolute;
+  inset: -20% auto auto 72%;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(155, 196, 255, 0.18), transparent 68%);
+  filter: blur(18px);
+  pointer-events: none;
 }
 
 .snapshot-grid {
@@ -2362,6 +2439,15 @@ h3 {
   .asset-clean-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .asset-curve-header-copy {
+    max-width: none;
+    text-align: left;
+  }
+
+  .asset-hero-price-row {
+    flex-direction: column;
   }
 
   .asset-table-header,
