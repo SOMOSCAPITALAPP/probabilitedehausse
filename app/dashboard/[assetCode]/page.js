@@ -89,6 +89,7 @@ function annualizedDisplay(historyItem) {
 
 function formatLargeNumber(value) {
   if (value === null || value === undefined) return "--";
+  if (typeof value === "string") return value;
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return "--";
   if (numeric >= 1e12) return `${(numeric / 1e12).toFixed(3)}T`;
