@@ -156,13 +156,6 @@ export default async function AssetDashboardPage({ params }) {
   const { forecasts, updatedAt } = await getForecasts();
   const assets = groupForecastsByAsset(forecasts);
   const asset = findAssetForecast(assets, assetCode);
-  const historyRows = await getAssetHistory(assetCode);
-  const benchmarkPayload = await getReferenceBenchmarkPayload(asset);
-  const historyMetrics = buildHistoricalHorizonMetrics(historyRows);
-  const movingAverageTrend = buildMovingAverageTrend(historyRows);
-  const yahooSnapshot = await getYahooAssetSnapshot(asset);
-  const scenarioAnalysis = buildBetaScenarioAnalysis(asset, yahooSnapshot);
-  const benchmarkStudy = buildBenchmarkRelativeStudy(asset, historyRows, benchmarkPayload);
 
   if (!asset) {
     return (
@@ -180,6 +173,14 @@ export default async function AssetDashboardPage({ params }) {
       </main>
     );
   }
+
+  const historyRows = await getAssetHistory(assetCode);
+  const benchmarkPayload = await getReferenceBenchmarkPayload(asset);
+  const historyMetrics = buildHistoricalHorizonMetrics(historyRows);
+  const movingAverageTrend = buildMovingAverageTrend(historyRows);
+  const yahooSnapshot = await getYahooAssetSnapshot(asset);
+  const scenarioAnalysis = buildBetaScenarioAnalysis(asset, yahooSnapshot);
+  const benchmarkStudy = buildBenchmarkRelativeStudy(asset, historyRows, benchmarkPayload);
 
   const pathModel = buildAssetPathStudy(asset, historyRows);
   const width = 920;
