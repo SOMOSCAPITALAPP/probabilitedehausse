@@ -37,6 +37,12 @@ XLB,Materials Select Sector SPDR,sector_index,XLB,yahoo,daily_prices,usd,TRUE
 XLU,Utilities Select Sector SPDR,sector_index,XLU,yahoo,daily_prices,usd,TRUE
 XLRE,Real Estate Select Sector SPDR,sector_index,XLRE,yahoo,daily_prices,usd,TRUE
 XLC,Communication Services Select Sector SPDR,sector_index,XLC,yahoo,daily_prices,usd,TRUE
+SGOV,iShares 0-3 Month Treasury Bond ETF,bond_etf,SGOV,yahoo,daily_prices,usd,TRUE
+SHY,iShares 1-3 Year Treasury Bond ETF,bond_etf,SHY,yahoo,daily_prices,usd,TRUE
+IEF,iShares 7-10 Year Treasury Bond ETF,bond_etf,IEF,yahoo,daily_prices,usd,TRUE
+XEON_DE,Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C,money_market_etf,XEON.DE,yahoo,daily_prices,eur,TRUE
+IBGS_MI,iShares EUR Govt Bond 1-3yr UCITS ETF EUR (Dist),bond_etf,IBGS.MI,yahoo,daily_prices,eur,TRUE
+IBCM_DE,iShares EUR Govt Bond 7-10yr UCITS ETF EUR (Dist),bond_etf,IBCM.DE,yahoo,daily_prices,eur,TRUE
 ```
 
 ## Onglet `daily_prices`
