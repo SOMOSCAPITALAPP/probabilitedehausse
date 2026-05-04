@@ -10,6 +10,7 @@ import {
   formatSignedPercent,
   getAssetHistory,
   getForecasts,
+  getYahooAssetSnapshot,
   groupForecastsByAsset,
   horizonLabel,
   performanceTone,
@@ -86,6 +87,39 @@ function annualizedDisplay(historyItem) {
   return formatSignedPercent(historyItem.annualizedReturn, 1);
 }
 
+function formatLargeNumber(value) {
+  if (value === null || value === undefined) return "--";
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "--";
+  if (numeric >= 1e12) return `${(numeric / 1e12).toFixed(3)}T`;
+  if (numeric >= 1e9) return `${(numeric / 1e9).toFixed(3)}B`;
+  if (numeric >= 1e6) return `${(numeric / 1e6).toFixed(3)}M`;
+  return numeric.toFixed(2);
+}
+
+function formatDecimal(value, digits = 2) {
+  if (value === null || value === undefined) return "--";
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "--";
+  return numeric.toFixed(digits);
+}
+
+function formatDateLabel(value) {
+  if (!value) return "--";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function formatDividend(dividend, dividendYield) {
+  if ((dividend === null || dividend === undefined) && (dividendYield === null || dividendYield === undefined)) {
+    return "--";
+  }
+  const left = dividend === null || dividend === undefined ? "--" : formatDecimal(dividend, 2);
+  const right = dividendYield === null || dividendYield === undefined ? "--" : formatPercent(dividendYield, 2);
+  return `${left} (${right})`;
+}
+
 export default async function AssetDashboardPage({ params }) {
   const { assetCode } = params;
   const { forecasts, updatedAt } = await getForecasts();
@@ -93,6 +127,7 @@ export default async function AssetDashboardPage({ params }) {
   const asset = findAssetForecast(assets, assetCode);
   const historyRows = await getAssetHistory(assetCode);
   const historyMetrics = buildHistoricalHorizonMetrics(historyRows);
+  const yahooSnapshot = await getYahooAssetSnapshot(asset);
 
   if (!asset) {
     return (
@@ -211,6 +246,52 @@ export default async function AssetDashboardPage({ params }) {
 
       <section className="section dashboard-clean-section">
         <div className="container">
+          {yahooSnapshot ? (
+            <article className="asset-clean-card snapshot-card">
+              <div className="asset-clean-header">
+                <div>
+                  <p className="forecast-asset-code">{asset.asset_code}</p>
+                  <h3>Yahoo snapshot</h3>
+                </div>
+              </div>
+
+              <div className="snapshot-grid">
+                <div className="snapshot-item">
+                  <span>Market Cap (intraday)</span>
+                  <strong>{formatLargeNumber(yahooSnapshot.marketCap)}</strong>
+                </div>
+                <div className="snapshot-item">
+                  <span>Beta (5Y Monthly)</span>
+                  <strong>{formatDecimal(yahooSnapshot.beta, 2)}</strong>
+                </div>
+                <div className="snapshot-item">
+                  <span>PE Ratio (TTM)</span>
+                  <strong>{formatDecimal(yahooSnapshot.peRatio, 2)}</strong>
+                </div>
+                <div className="snapshot-item">
+                  <span>EPS (TTM)</span>
+                  <strong>{formatDecimal(yahooSnapshot.eps, 2)}</strong>
+                </div>
+                <div className="snapshot-item">
+                  <span>Earnings Date (est.)</span>
+                  <strong>{formatDateLabel(yahooSnapshot.earningsDate)}</strong>
+                </div>
+                <div className="snapshot-item">
+                  <span>Forward Dividend &amp; Yield</span>
+                  <strong>{formatDividend(yahooSnapshot.forwardDividend, yahooSnapshot.dividendYield)}</strong>
+                </div>
+                <div className="snapshot-item">
+                  <span>Ex-Dividend Date</span>
+                  <strong>{formatDateLabel(yahooSnapshot.exDividendDate)}</strong>
+                </div>
+                <div className="snapshot-item">
+                  <span>1y Target Est</span>
+                  <strong>{formatDecimal(yahooSnapshot.targetPrice, 2)}</strong>
+                </div>
+              </div>
+            </article>
+          ) : null}
+
           <article className="asset-clean-card asset-curve-card">
             <div className="asset-clean-header">
               <div>

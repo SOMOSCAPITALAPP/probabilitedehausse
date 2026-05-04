@@ -1495,6 +1495,41 @@ h3 {
   margin-bottom: 18px;
 }
 
+.snapshot-card {
+  margin-bottom: 18px;
+}
+
+.snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.snapshot-item {
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.snapshot-item span {
+  display: block;
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+}
+
+.snapshot-item strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 1.08rem;
+  line-height: 1.3;
+}
+
 .methodology-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2222,6 +2257,7 @@ h3 {
 
   .dashboard-clean-top,
   .dashboard-clean-summary,
+  .snapshot-grid,
   .methodology-grid {
     grid-template-columns: 1fr;
   }
