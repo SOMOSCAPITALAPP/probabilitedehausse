@@ -42,9 +42,65 @@ function avg(values) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
+const CLASS_SECTIONS = [
+  {
+    key: "equity_indices",
+    title: "Indices actions",
+    description: "Les grands indices actions globaux et regionaux.",
+  },
+  {
+    key: "rates",
+    title: "Taux",
+    description: "ETFs taux et poches monetaires pour lire la valeur investissable des placements de taux.",
+  },
+  {
+    key: "fx",
+    title: "Devises",
+    description: "Paires de change et proxies FX.",
+  },
+  {
+    key: "commodities",
+    title: "Matieres premieres",
+    description: "Or, energie et autres expositions matieres premieres.",
+  },
+  {
+    key: "crypto",
+    title: "Crypto",
+    description: "Actifs numeriques suivis par le moteur.",
+  },
+  {
+    key: "volatility",
+    title: "Volatilite",
+    description: "Mesures de stress et de nervosite de marche.",
+  },
+  {
+    key: "equities",
+    title: "Actions",
+    description: "Titres individuels, classes ensuite par fiche detail.",
+  },
+];
+
+function assetSectionKey(asset) {
+  const assetClass = String(asset.asset_class || "").toLowerCase();
+
+  if (assetClass === "equity_index") return "equity_indices";
+  if (assetClass === "rates" || assetClass === "bond_etf" || assetClass === "money_market_etf") return "rates";
+  if (assetClass === "fx") return "fx";
+  if (assetClass === "commodity") return "commodities";
+  if (assetClass === "crypto") return "crypto";
+  if (assetClass === "volatility") return "volatility";
+  if (assetClass === "equity_single") return "equities";
+  if (assetClass === "sector_index") return "equity_indices";
+  return "equity_indices";
+}
+
 export default async function DashboardPage() {
   const { forecasts, source, updatedAt, diagnostics = [] } = await getForecasts();
   const assets = groupForecastsByAsset(forecasts);
+  const sectionedAssets = CLASS_SECTIONS.map((section) => ({
+    ...section,
+    assets: assets.filter((asset) => assetSectionKey(asset) === section.key),
+  })).filter((section) => section.assets.length > 0);
 
   const avgProbability = avg(forecasts.map((item) => Number(item.upside_probability ?? 0)));
   const avgCurrentVol = avg(assets.map((asset) => assetCurrentVolatility(asset)).filter((value) => Number.isFinite(value)));
@@ -151,76 +207,88 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="dashboard-clean-list">
-            {assets.map((asset) => (
-              <article className="asset-clean-card" key={asset.asset_code}>
-                <div className="asset-clean-header">
-                  <div>
-                    <p className="forecast-asset-code">{asset.asset_code}</p>
-                    <h3>{asset.asset_name}</h3>
-                  </div>
-                  <a className="button button-secondary compact-button" href={`/dashboard/${asset.asset_code}`}>
-                    Voir l'actif
-                  </a>
+          {sectionedAssets.map((section) => (
+            <div className="dashboard-section-block" key={section.key}>
+              <div className="dashboard-section-heading">
+                <div>
+                  <p className="eyebrow">{section.title}</p>
+                  <h3>{section.title}</h3>
                 </div>
+                <p>{section.description}</p>
+              </div>
 
-                <div className="asset-clean-table-wrap">
-                  <table className="asset-clean-table">
-                    <thead>
-                      <tr>
-                        <th>Horizon</th>
-                        <th>Perf</th>
-                        <th>Norme</th>
-                        <th>Vol</th>
-                        <th>Prob.</th>
-                        <th>Drawdown</th>
-                        <th>Risk</th>
-                        <th>Conf.</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {DASHBOARD_HORIZON_ORDER.map((horizon) => {
-                        const item = asset.horizons[horizon];
-                        if (!item) {
-                          return (
-                            <tr key={`${asset.asset_code}-${horizon}`}>
-                              <td>{horizonLabel(horizon)}</td>
-                              <td colSpan={7} className="empty-cell">
-                                --
-                              </td>
-                            </tr>
-                          );
-                        }
+              <div className="dashboard-clean-list">
+                {section.assets.map((asset) => (
+                  <article className="asset-clean-card" key={asset.asset_code}>
+                    <div className="asset-clean-header">
+                      <div>
+                        <p className="forecast-asset-code">{asset.asset_code}</p>
+                        <h3>{asset.asset_name}</h3>
+                      </div>
+                      <a className="button button-secondary compact-button" href={`/dashboard/${asset.asset_code}`}>
+                        Voir l'actif
+                      </a>
+                    </div>
 
-                        const risk = riskLabel(item.expected_drawdown);
-
-                        return (
-                          <tr key={`${asset.asset_code}-${horizon}`}>
-                            <td>{horizonLabel(horizon)}</td>
-                            <td className={performanceTone(item.trailing_return)}>
-                              {formatSignedPercent(item.trailing_return, 1)}
-                            </td>
-                            <td>{formatSignedPercent(item.historical_mean, 1)}</td>
-                            <td>{formatPercent(item.historical_vol, 1)}</td>
-                            <td className={probabilityTone(item.upside_probability)}>
-                              {formatPercent(item.upside_probability, 1)}
-                            </td>
-                            <td>{formatSignedPercent(item.expected_drawdown, 1)}</td>
-                            <td className={riskTone(risk)}>{risk}</td>
-                            <td>
-                              <span className={`confidence-pill ${confidenceTone(item.confidence_label)}`}>
-                                {item.confidence_label}
-                              </span>
-                            </td>
+                    <div className="asset-clean-table-wrap">
+                      <table className="asset-clean-table">
+                        <thead>
+                          <tr>
+                            <th>Horizon</th>
+                            <th>Perf</th>
+                            <th>Norme</th>
+                            <th>Vol</th>
+                            <th>Prob.</th>
+                            <th>Drawdown</th>
+                            <th>Risk</th>
+                            <th>Conf.</th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </article>
-            ))}
-          </div>
+                        </thead>
+                        <tbody>
+                          {DASHBOARD_HORIZON_ORDER.map((horizon) => {
+                            const item = asset.horizons[horizon];
+                            if (!item) {
+                              return (
+                                <tr key={`${asset.asset_code}-${horizon}`}>
+                                  <td>{horizonLabel(horizon)}</td>
+                                  <td colSpan={7} className="empty-cell">
+                                    --
+                                  </td>
+                                </tr>
+                              );
+                            }
+
+                            const risk = riskLabel(item.expected_drawdown);
+
+                            return (
+                              <tr key={`${asset.asset_code}-${horizon}`}>
+                                <td>{horizonLabel(horizon)}</td>
+                                <td className={performanceTone(item.trailing_return)}>
+                                  {formatSignedPercent(item.trailing_return, 1)}
+                                </td>
+                                <td>{formatSignedPercent(item.historical_mean, 1)}</td>
+                                <td>{formatPercent(item.historical_vol, 1)}</td>
+                                <td className={probabilityTone(item.upside_probability)}>
+                                  {formatPercent(item.upside_probability, 1)}
+                                </td>
+                                <td>{formatSignedPercent(item.expected_drawdown, 1)}</td>
+                                <td className={riskTone(risk)}>{risk}</td>
+                                <td>
+                                  <span className={`confidence-pill ${confidenceTone(item.confidence_label)}`}>
+                                    {item.confidence_label}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
     </main>
