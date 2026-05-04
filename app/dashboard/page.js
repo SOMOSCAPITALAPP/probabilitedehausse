@@ -3,6 +3,7 @@ import {
   assetCurrentVolatility,
   formatPercent,
   formatSignedPercent,
+  getAssetsTrendMap,
   getForecasts,
   groupForecastsByAsset,
   horizonLabel,
@@ -35,6 +36,13 @@ function riskTone(label) {
   if (label === "high") return "risk-high";
   if (label === "medium") return "risk-medium";
   return "risk-low";
+}
+
+function trendTone(label) {
+  if (label === "haussiere") return "trend-positive";
+  if (label === "haussiere fragile") return "trend-fragile";
+  if (label === "baissiere") return "trend-negative";
+  return "trend-mixed";
 }
 
 function avg(values) {
@@ -104,6 +112,7 @@ function assetSectionKey(asset) {
 export default async function DashboardPage() {
   const { forecasts, source, updatedAt, diagnostics = [] } = await getForecasts();
   const assets = groupForecastsByAsset(forecasts);
+  const trendMap = await getAssetsTrendMap(assets.map((asset) => asset.asset_code));
   const sectionedAssets = CLASS_SECTIONS.map((section) => ({
     ...section,
     assets: assets.filter((asset) => assetSectionKey(asset) === section.key),
@@ -239,6 +248,11 @@ export default async function DashboardPage() {
                       <div>
                         <p className="forecast-asset-code">{asset.asset_code}</p>
                         <h3>{asset.asset_name}</h3>
+                        {trendMap[asset.asset_code] ? (
+                          <span className={`dashboard-trend-badge ${trendTone(trendMap[asset.asset_code].label)}`}>
+                            {trendMap[asset.asset_code].label}
+                          </span>
+                        ) : null}
                       </div>
                       <a className="button button-secondary compact-button" href={`/dashboard/${asset.asset_code}`}>
                         Voir l'actif

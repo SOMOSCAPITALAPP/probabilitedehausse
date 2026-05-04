@@ -7,6 +7,7 @@ import {
   buildAssetPathStudy,
   buildBetaScenarioAnalysis,
   buildBenchmarkRelativeStudy,
+  buildMovingAverageTrend,
   findAssetForecast,
   formatPercent,
   formatSignedPercent,
@@ -143,6 +144,13 @@ function scenarioBandTone(label) {
   return "scenario-band-balanced";
 }
 
+function trendTone(label) {
+  if (label === "haussiere") return "trend-positive";
+  if (label === "haussiere fragile") return "trend-fragile";
+  if (label === "baissiere") return "trend-negative";
+  return "trend-mixed";
+}
+
 export default async function AssetDashboardPage({ params }) {
   const { assetCode } = params;
   const { forecasts, updatedAt } = await getForecasts();
@@ -151,6 +159,7 @@ export default async function AssetDashboardPage({ params }) {
   const historyRows = await getAssetHistory(assetCode);
   const benchmarkPayload = await getReferenceBenchmarkPayload(asset);
   const historyMetrics = buildHistoricalHorizonMetrics(historyRows);
+  const movingAverageTrend = buildMovingAverageTrend(historyRows);
   const yahooSnapshot = await getYahooAssetSnapshot(asset);
   const scenarioAnalysis = buildBetaScenarioAnalysis(asset, yahooSnapshot);
   const benchmarkStudy = buildBenchmarkRelativeStudy(asset, historyRows, benchmarkPayload);
@@ -243,6 +252,12 @@ export default async function AssetDashboardPage({ params }) {
                   <div className="asset-hero-price-block asset-hero-price-secondary">
                     <span>Dernier close daily</span>
                     <strong>{formatPrice(latestClose, latestCurrency)}</strong>
+                  </div>
+                ) : null}
+                {movingAverageTrend ? (
+                  <div className={`asset-hero-price-block asset-trend-block ${trendTone(movingAverageTrend.label)}`}>
+                    <span>Tendance 50j / 200j</span>
+                    <strong>{movingAverageTrend.label}</strong>
                   </div>
                 ) : null}
               </div>

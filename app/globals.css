@@ -1341,6 +1341,56 @@ h3 {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.asset-trend-block {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.asset-trend-block strong {
+  font-size: 1.08rem;
+  line-height: 1.15;
+  text-transform: capitalize;
+}
+
+.dashboard-trend-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-size: 0.74rem;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-transform: capitalize;
+}
+
+.trend-positive {
+  color: #8ff0c5;
+  border-color: rgba(123, 227, 194, 0.22);
+  background: rgba(123, 227, 194, 0.1);
+}
+
+.trend-fragile {
+  color: #ffe19d;
+  border-color: rgba(255, 213, 140, 0.22);
+  background: rgba(255, 213, 140, 0.1);
+}
+
+.trend-mixed {
+  color: #c8d5ea;
+  border-color: rgba(190, 213, 255, 0.18);
+  background: rgba(190, 213, 255, 0.08);
+}
+
+.trend-negative {
+  color: #ffb3aa;
+  border-color: rgba(255, 146, 124, 0.22);
+  background: rgba(255, 146, 124, 0.1);
+}
+
 .dashboard-clean-status {
   display: grid;
   gap: 10px;
