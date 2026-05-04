@@ -12,7 +12,7 @@ import {
   formatSignedPercent,
   getAssetHistory,
   getForecasts,
-  getReferenceBenchmarkHistory,
+  getReferenceBenchmarkPayload,
   getYahooAssetSnapshot,
   groupForecastsByAsset,
   horizonLabel,
@@ -149,11 +149,11 @@ export default async function AssetDashboardPage({ params }) {
   const assets = groupForecastsByAsset(forecasts);
   const asset = findAssetForecast(assets, assetCode);
   const historyRows = await getAssetHistory(assetCode);
-  const benchmarkHistoryRows = await getReferenceBenchmarkHistory(asset);
+  const benchmarkPayload = await getReferenceBenchmarkPayload(asset);
   const historyMetrics = buildHistoricalHorizonMetrics(historyRows);
   const yahooSnapshot = await getYahooAssetSnapshot(asset);
   const scenarioAnalysis = buildBetaScenarioAnalysis(asset, yahooSnapshot);
-  const benchmarkStudy = buildBenchmarkRelativeStudy(asset, historyRows, benchmarkHistoryRows);
+  const benchmarkStudy = buildBenchmarkRelativeStudy(asset, historyRows, benchmarkPayload);
 
   if (!asset) {
     return (
