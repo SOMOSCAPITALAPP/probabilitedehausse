@@ -46,36 +46,43 @@ const CLASS_SECTIONS = [
   {
     key: "equity_indices",
     title: "Indices actions",
+    anchor: "indices-actions",
     description: "Les grands indices actions globaux et regionaux.",
   },
   {
     key: "rates",
     title: "Taux",
+    anchor: "taux",
     description: "ETFs taux et poches monetaires pour lire la valeur investissable des placements de taux.",
   },
   {
     key: "fx",
     title: "Devises",
+    anchor: "devises",
     description: "Paires de change et proxies FX.",
   },
   {
     key: "commodities",
     title: "Matieres premieres",
+    anchor: "matieres-premieres",
     description: "Or, energie et autres expositions matieres premieres.",
   },
   {
     key: "crypto",
     title: "Crypto",
+    anchor: "crypto",
     description: "Actifs numeriques suivis par le moteur.",
   },
   {
     key: "volatility",
     title: "Volatilite",
+    anchor: "volatilite",
     description: "Mesures de stress et de nervosite de marche.",
   },
   {
     key: "equities",
     title: "Actions",
+    anchor: "actions",
     description: "Titres individuels, classes ensuite par fiche detail.",
   },
 ];
@@ -176,6 +183,14 @@ export default async function DashboardPage() {
               <strong>{lowProb}</strong>
             </article>
           </div>
+
+          <nav className="dashboard-jump-nav" aria-label="Navigation par classes d'actifs">
+            {sectionedAssets.map((section) => (
+              <a key={section.key} href={`#${section.anchor}`} className="dashboard-jump-chip">
+                {section.title}
+              </a>
+            ))}
+          </nav>
         </div>
       </section>
 
@@ -208,7 +223,7 @@ export default async function DashboardPage() {
           </div>
 
           {sectionedAssets.map((section) => (
-            <div className="dashboard-section-block" key={section.key}>
+            <div className="dashboard-section-block" key={section.key} id={section.anchor}>
               <div className="dashboard-section-heading">
                 <div>
                   <p className="eyebrow">{section.title}</p>

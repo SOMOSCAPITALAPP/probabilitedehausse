@@ -1368,6 +1368,36 @@ h3 {
   font-size: 2rem;
 }
 
+.dashboard-jump-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.dashboard-jump-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #dbe5f4;
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-size: 0.82rem;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.dashboard-jump-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(123, 227, 194, 0.28);
+  background: rgba(123, 227, 194, 0.09);
+  color: var(--text);
+}
+
 .dashboard-clean-section {
   padding-top: 14px;
 }
@@ -2529,6 +2559,10 @@ h3 {
   .dashboard-section-heading p {
     max-width: none;
     text-align: left;
+  }
+
+  .dashboard-jump-nav {
+    gap: 8px;
   }
 
   .performance-strip,
