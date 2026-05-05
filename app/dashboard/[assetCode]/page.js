@@ -1,12 +1,12 @@
 import {
   DASHBOARD_HORIZON_ORDER,
-  buildHistoricalHorizonMetrics,
   assetAnnualMean,
   assetAverageVolatility,
   assetCurrentVolatility,
   buildAssetPathStudy,
   buildBetaScenarioAnalysis,
   buildBenchmarkRelativeStudy,
+  buildHistoricalHorizonMetrics,
   buildMovingAverageTrend,
   findAssetForecast,
   formatPercent,
@@ -16,12 +16,164 @@ import {
   getReferenceBenchmarkPayload,
   getYahooAssetSnapshot,
   groupForecastsByAsset,
-  horizonLabel,
   performanceTone,
   riskLabel,
 } from "../../../lib/forecast-data";
+import {
+  LOCALE_LABELS,
+  benchmarkRelativeLabelForLocale,
+  buildLocaleHref,
+  confidenceLabelForLocale,
+  getLocale,
+  horizonLabelForLocale,
+  localeForDate,
+  pageDictionary,
+  riskLabelForLocale,
+  trendLabelForLocale,
+} from "../../../lib/site-copy";
 
 export const dynamic = "force-dynamic";
+
+const PAGE_COPY = {
+  fr: {
+    eyebrow: "Fiche actif",
+    notFoundTitle: "Actif introuvable.",
+    notFoundText: "Aucune ligne disponible pour cet actif.",
+    latestPrice: "Dernier cours",
+    latestClose: "Dernier close daily",
+    trend: "Tendance 50j / 200j",
+    intro:
+      "Cette fiche se lit en deux temps. D'abord les performances déjà réalisées et la lecture probabiliste par horizon. Ensuite seulement la projection visuelle à un an, construite à partir de la moyenne historique, de la volatilité moyenne, de la volatilité actuelle et du chemin quotidien observé sur la dernière année.",
+    annualMean: "Moyenne 1 an",
+    avgVol: "Vol moyenne",
+    currentVol: "Vol actuelle",
+    lastYearPerf: "Perf dernière année",
+    marketProfile: "Profil de marché",
+    benchmark: "Comportement sur 1 an vs",
+    outperformance: "Surperformance",
+    realizedBeta: "Bêta réalisé",
+    upDays: "Jours de hausse du benchmark surperformés",
+    downDays: "Jours de baisse du benchmark mieux résistés",
+    scenario: "Interprétation scénario",
+    oneMonth: "1 mois",
+    oneYear: "1 an",
+    shortRead: "Lecture bêta + signal court terme",
+    longRead: "Lecture bêta + carry + profil global",
+    horizonTable: "Table des horizons",
+    tableHeaders: ["Horizon", "Perf.", "Perf. ann.", "Norme", "Vol.", "Prob.", "Drawdown", "Risque", "Confiance"],
+    chart: "Projection quotidienne à 1 an",
+    chartText:
+      "Courbe verte : scénario prudent projeté. Droite bleue : moyenne historique linéaire. Faisceau sable : moyenne ± 2 écarts-types.",
+    legendProjected: "Projection prudente à 1 an",
+    legendMean: "Moyenne historique linéaire",
+    legendBand: "Faisceau moyenne ± 2 écarts-types",
+    readingPrinciples: "Principes de lecture",
+    pathTitle: "Chemin parcouru",
+    pathText:
+      "La performance terminale ne suffit pas. Northcurve suit aussi le chemin parcouru, c'est-à-dire la somme des variations quotidiennes absolues sur la fenêtre. Deux actifs peuvent finir à +10% sur un an avec des signatures de risque très différentes.",
+    probTitle: "Probabilités prudentes",
+    probText:
+      "La probabilité de hausse compare la performance trailing à sa moyenne historique et à sa volatilité historique sur chaque horizon. Plus un actif est étiré au-dessus de sa norme, relativement à sa volatilité historique, plus la probabilité future baisse.",
+    multiTitle: "Lecture multi-horizons",
+    multiText:
+      "La table croise le passé observé et le futur probable. La colonne Perf mesure ce qui vient réellement de se produire. La colonne Norme rappelle la moyenne historique sur l'horizon.",
+    projectionTitle: "Projection à un an",
+    projectionText:
+      "Le graphique final ne cherche pas à dessiner un prix exact. Il projette un indice base 100 avec une nervosité quotidienne proche de l'historique récent, puis l'oriente avec la moyenne historique et les probabilités déjà calculées.",
+  },
+  en: {
+    eyebrow: "Asset page",
+    notFoundTitle: "Asset not found.",
+    notFoundText: "No row is available for this asset.",
+    latestPrice: "Last price",
+    latestClose: "Last daily close",
+    trend: "50d / 200d trend",
+    intro:
+      "This page is read in two steps. First, already observed performance and the probabilistic reading by horizon. Second, the one-year visual projection built from historical mean, average volatility, current volatility and the daily path observed over the past year.",
+    annualMean: "1Y mean",
+    avgVol: "Average vol.",
+    currentVol: "Current vol.",
+    lastYearPerf: "Last year perf.",
+    marketProfile: "Market profile",
+    benchmark: "1-year behavior vs",
+    outperformance: "Outperformance",
+    realizedBeta: "Realized beta",
+    upDays: "Up days vs benchmark outperformed",
+    downDays: "Down days vs benchmark resisted better",
+    scenario: "Scenario interpretation",
+    oneMonth: "1 month",
+    oneYear: "1 year",
+    shortRead: "Beta + short-term signal",
+    longRead: "Beta + carry + global profile",
+    horizonTable: "Horizon table",
+    tableHeaders: ["Horizon", "Perf.", "Ann. perf.", "Norm", "Vol.", "Prob.", "Drawdown", "Risk", "Confidence"],
+    chart: "One-year daily projection",
+    chartText:
+      "Green line: projected cautious scenario. Blue line: linear historical mean. Sand band: mean ± 2 standard deviations.",
+    legendProjected: "Cautious 1-year projection",
+    legendMean: "Linear historical mean",
+    legendBand: "Mean ± 2 standard deviation band",
+    readingPrinciples: "Reading principles",
+    pathTitle: "Path traveled",
+    pathText:
+      "Terminal performance is not enough. Northcurve also tracks the path traveled, meaning the sum of absolute daily moves over the window. Two assets can finish at +10% over one year with very different risk signatures.",
+    probTitle: "Cautious probabilities",
+    probText:
+      "Upside probability compares trailing performance with historical mean and historical volatility on each horizon. The more stretched the asset is above its norm, relative to historical volatility, the lower the future upside probability becomes.",
+    multiTitle: "Multi-horizon reading",
+    multiText:
+      "The table combines observed past and probable future. The Perf column shows what has actually just happened. The Norm column recalls the historical average on the same horizon.",
+    projectionTitle: "One-year projection",
+    projectionText:
+      "The final chart does not try to predict an exact price. It projects a base-100 index with daily nervousness close to recent history, then tilts it with historical mean and the already computed probabilities.",
+  },
+  "pt-BR": {
+    eyebrow: "Ficha do ativo",
+    notFoundTitle: "Ativo não encontrado.",
+    notFoundText: "Nenhuma linha está disponível para este ativo.",
+    latestPrice: "Último preço",
+    latestClose: "Último fechamento diário",
+    trend: "Tendência 50d / 200d",
+    intro:
+      "Esta ficha é lida em duas etapas. Primeiro, o desempenho já observado e a leitura probabilística por horizonte. Depois, a projeção visual de 1 ano, construída a partir da média histórica, da volatilidade média, da volatilidade atual e do caminho diário observado no último ano.",
+    annualMean: "Média 1 ano",
+    avgVol: "Vol. média",
+    currentVol: "Vol. atual",
+    lastYearPerf: "Perf. último ano",
+    marketProfile: "Perfil de mercado",
+    benchmark: "Comportamento em 1 ano vs",
+    outperformance: "Sobreperformance",
+    realizedBeta: "Beta realizado",
+    upDays: "Dias de alta vs benchmark superados",
+    downDays: "Dias de baixa vs benchmark resistidos melhor",
+    scenario: "Interpretação de cenário",
+    oneMonth: "1 mês",
+    oneYear: "1 ano",
+    shortRead: "Beta + sinal de curto prazo",
+    longRead: "Beta + carry + perfil global",
+    horizonTable: "Tabela de horizontes",
+    tableHeaders: ["Horizonte", "Perf.", "Perf. anual.", "Norma", "Vol.", "Prob.", "Drawdown", "Risco", "Confiança"],
+    chart: "Projeção diária em 1 ano",
+    chartText:
+      "Curva verde: cenário prudente projetado. Linha azul: média histórica linear. Faixa areia: média ± 2 desvios-padrão.",
+    legendProjected: "Projeção prudente em 1 ano",
+    legendMean: "Média histórica linear",
+    legendBand: "Faixa média ± 2 desvios-padrão",
+    readingPrinciples: "Princípios de leitura",
+    pathTitle: "Caminho percorrido",
+    pathText:
+      "O desempenho terminal não basta. A Northcurve também acompanha o caminho percorrido, isto é, a soma das variações diárias absolutas na janela. Dois ativos podem terminar em +10% em um ano com assinaturas de risco muito diferentes.",
+    probTitle: "Probabilidades prudentes",
+    probText:
+      "A probabilidade de alta compara o desempenho trailing com a média histórica e a volatilidade histórica em cada horizonte. Quanto mais esticado o ativo estiver acima da sua norma, em relação à volatilidade histórica, menor será a probabilidade futura de alta.",
+    multiTitle: "Leitura multi-horizontes",
+    multiText:
+      "A tabela cruza o passado observado e o futuro provável. A coluna Perf mostra o que realmente acabou de acontecer. A coluna Norma relembra a média histórica no mesmo horizonte.",
+    projectionTitle: "Projeção em 1 ano",
+    projectionText:
+      "O gráfico final não tenta desenhar um preço exato. Ele projeta um índice base 100 com nervosismo diário próximo ao histórico recente, e depois o inclina com a média histórica e as probabilidades já calculadas.",
+  },
+};
 
 function probabilityTone(value) {
   const numeric = Number(value ?? 0);
@@ -44,13 +196,11 @@ function riskTone(label) {
 
 function curvePath(points, width, height, padding, min, max) {
   const span = Math.max(0.0001, max - min);
-
   const coords = points.map((point) => {
     const x = padding + (point.day / 252) * (width - padding * 2);
     const y = height - padding - ((point.value - min) / span) * (height - padding * 2);
     return [x, y];
   });
-
   return coords.map(([x, y], index) => `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`).join(" ");
 }
 
@@ -67,11 +217,7 @@ function chartTickValues(min, max, steps = 4) {
   const safeMin = Math.min(min, 100);
   const safeMax = Math.max(max, 100);
   const span = safeMax - safeMin;
-
-  if (span <= 0.0001) {
-    return [safeMin, safeMax];
-  }
-
+  if (span <= 0.0001) return [safeMin, safeMax];
   return Array.from({ length: steps + 1 }, (_, index) => safeMin + (span * index) / steps);
 }
 
@@ -109,11 +255,11 @@ function formatDecimal(value, digits = 2) {
   return numeric.toFixed(digits);
 }
 
-function formatDateLabel(value) {
+function formatDateLabel(value, locale) {
   if (!value) return "--";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return date.toLocaleDateString(localeForDate(locale), { month: "short", day: "numeric", year: "numeric" });
 }
 
 function formatDividend(dividend, dividendYield) {
@@ -125,11 +271,11 @@ function formatDividend(dividend, dividendYield) {
   return `${left} (${right})`;
 }
 
-function formatPrice(value, currency = null) {
+function formatPrice(value, currency = null, locale = "en") {
   if (value === null || value === undefined) return "--";
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return "--";
-  const formatted = new Intl.NumberFormat("en-US", {
+  const formatted = new Intl.NumberFormat(localeForDate(locale), {
     minimumFractionDigits: numeric >= 1000 ? 0 : 2,
     maximumFractionDigits: numeric >= 1000 ? 0 : 2,
   }).format(numeric);
@@ -151,8 +297,99 @@ function trendTone(label) {
   return "trend-mixed";
 }
 
-export default async function AssetDashboardPage({ params }) {
-  const { assetCode } = params;
+function profileSummary(scenarioAnalysis, assetName, locale) {
+  if (!scenarioAnalysis) return "";
+  const beta = Number(scenarioAnalysis.beta ?? 1).toFixed(2);
+  const yieldPct = Number(scenarioAnalysis.annualDividendYield ?? 0);
+
+  if (locale === "en") {
+    return `${assetName} shows a beta of ${beta}. Dividend carry contributes about ${formatPercent(
+      yieldPct,
+      2,
+    )} annually when available.`;
+  }
+  if (locale === "pt-BR") {
+    return `${assetName} apresenta beta de ${beta}. O carry de dividendos contribui com cerca de ${formatPercent(
+      yieldPct,
+      2,
+    )} ao ano quando disponível.`;
+  }
+  return `${assetName} présente un bêta de ${beta}. Le carry dividende contribue à hauteur d'environ ${formatPercent(
+    yieldPct,
+    2,
+  )} par an lorsqu'il est disponible.`;
+}
+
+function scenarioProfileLabel(beta, locale) {
+  if (locale === "en") {
+    if (beta >= 1.25) return "more cyclical than market";
+    if (beta <= 0.85) return "more defensive than market";
+    return "close to market profile";
+  }
+  if (locale === "pt-BR") {
+    if (beta >= 1.25) return "mais cíclico que o mercado";
+    if (beta <= 0.85) return "mais defensivo que o mercado";
+    return "perfil próximo ao mercado";
+  }
+  if (beta >= 1.25) return "plus cyclique que le marché";
+  if (beta <= 0.85) return "plus défensif que le marché";
+  return "profil proche du marché";
+}
+
+function scenarioRowLabel(label, locale) {
+  const translations = {
+    "Si le marche baisse de 10%": {
+      fr: "Si le marché baisse de 10%",
+      en: "If the market falls 10%",
+      "pt-BR": "Se o mercado cair 10%",
+    },
+    "Si le marche stagne": {
+      fr: "Si le marché stagne",
+      en: "If the market is flat",
+      "pt-BR": "Se o mercado ficar estável",
+    },
+    "Si le marche monte de 10%": {
+      fr: "Si le marché monte de 10%",
+      en: "If the market rises 10%",
+      "pt-BR": "Se o mercado subir 10%",
+    },
+    "Si le marche baisse de 20%": {
+      fr: "Si le marché baisse de 20%",
+      en: "If the market falls 20%",
+      "pt-BR": "Se o mercado cair 20%",
+    },
+    "Si le marche monte de 20%": {
+      fr: "Si le marché monte de 20%",
+      en: "If the market rises 20%",
+      "pt-BR": "Se o mercado subir 20%",
+    },
+  };
+
+  return translations[label]?.[locale] || label;
+}
+
+function LanguageSwitch({ locale, assetCode }) {
+  return (
+    <div className="locale-switch" aria-label="Language switch">
+      {Object.entries(LOCALE_LABELS).map(([code, label]) => (
+        <a
+          key={code}
+          href={buildLocaleHref(`/dashboard/${assetCode}`, code)}
+          className={`locale-chip ${locale === code ? "locale-chip-active" : ""}`}
+        >
+          {label}
+        </a>
+      ))}
+    </div>
+  );
+}
+
+export default async function AssetDashboardPage({ params, searchParams }) {
+  const locale = getLocale(searchParams);
+  const common = pageDictionary(locale);
+  const copy = PAGE_COPY[locale];
+  const assetCode = params.assetCode;
+
   const { forecasts, updatedAt } = await getForecasts();
   const assets = groupForecastsByAsset(forecasts);
   const asset = findAssetForecast(assets, assetCode);
@@ -163,10 +400,10 @@ export default async function AssetDashboardPage({ params }) {
         <section className="section dashboard-clean-section">
           <div className="container">
             <p className="eyebrow">Northcurve</p>
-            <h1 className="dashboard-clean-title">Actif introuvable.</h1>
-            <p className="hero-text dashboard-clean-copy">Aucune ligne disponible pour cet actif.</p>
-            <a className="button button-secondary" href="/dashboard">
-              Retour au dashboard
+            <h1 className="dashboard-clean-title">{copy.notFoundTitle}</h1>
+            <p className="hero-text dashboard-clean-copy">{copy.notFoundText}</p>
+            <a className="button button-secondary" href={buildLocaleHref("/dashboard", locale)}>
+              {common.nav.return}
             </a>
           </div>
         </section>
@@ -181,8 +418,8 @@ export default async function AssetDashboardPage({ params }) {
   const yahooSnapshot = await getYahooAssetSnapshot(asset);
   const scenarioAnalysis = buildBetaScenarioAnalysis(asset, yahooSnapshot);
   const benchmarkStudy = buildBenchmarkRelativeStudy(asset, historyRows, benchmarkPayload);
-
   const pathModel = buildAssetPathStudy(asset, historyRows);
+
   const width = 920;
   const height = 320;
   const padding = 26;
@@ -219,76 +456,69 @@ export default async function AssetDashboardPage({ params }) {
     <main className="dashboard-shell dashboard-clean-shell">
       <header className="site-header">
         <div className="container nav-row">
-          <a className="brand" href="/">
+          <a className="brand" href={buildLocaleHref("/", locale)}>
             Northcurve
           </a>
 
           <nav className="desktop-nav" aria-label="Main navigation">
-            <a href="/">Landing</a>
-            <a href="/dashboard">Dashboard</a>
-            <a href="/backtest">Backtest</a>
+            <a href={buildLocaleHref("/", locale)}>{common.nav.home}</a>
+            <a href={buildLocaleHref("/dashboard", locale)}>{common.nav.dashboard}</a>
+            <a href={buildLocaleHref("/classement", locale)}>{common.nav.ranking}</a>
           </nav>
 
           <div className="nav-actions">
-            <a className="button button-secondary" href="/dashboard">
-              Retour
-            </a>
+            <LanguageSwitch locale={locale} assetCode={assetCode} />
           </div>
         </div>
       </header>
 
       <section className="section dashboard-clean-hero">
         <div className="container">
-          <p className="eyebrow">Asset detail</p>
+          <p className="eyebrow">{copy.eyebrow}</p>
           <div className="dashboard-clean-top">
             <div>
               <p className="forecast-asset-code">{asset.asset_code}</p>
               <h1 className="dashboard-clean-title">{asset.asset_name}</h1>
               <div className="asset-hero-price-row">
                 <div className="asset-hero-price-block">
-                  <span>Dernier cours</span>
-                  <strong>{formatPrice(latestPrice, latestCurrency)}</strong>
+                  <span>{copy.latestPrice}</span>
+                  <strong>{formatPrice(latestPrice, latestCurrency, locale)}</strong>
                 </div>
                 {latestClose !== null ? (
                   <div className="asset-hero-price-block asset-hero-price-secondary">
-                    <span>Dernier close daily</span>
-                    <strong>{formatPrice(latestClose, latestCurrency)}</strong>
+                    <span>{copy.latestClose}</span>
+                    <strong>{formatPrice(latestClose, latestCurrency, locale)}</strong>
                   </div>
                 ) : null}
                 {movingAverageTrend ? (
                   <div className={`asset-hero-price-block asset-trend-block ${trendTone(movingAverageTrend.label)}`}>
-                    <span>Tendance 50j / 200j</span>
-                    <strong>{movingAverageTrend.label}</strong>
+                    <span>{copy.trend}</span>
+                    <strong>{trendLabelForLocale(movingAverageTrend.label, locale)}</strong>
                   </div>
                 ) : null}
               </div>
-              <p className="hero-text dashboard-clean-copy">
-                Cette fiche se lit en deux temps. D'abord les performances déjà réalisées et la lecture
-                probabiliste par horizon. Ensuite seulement la projection visuelle à un an, construite à
-                partir de la moyenne historique, de la volatilité moyenne, de la volatilité actuelle et du
-                chemin quotidien observé sur la dernière année.
-              </p>
+              <p className="hero-text dashboard-clean-copy">{copy.intro}</p>
             </div>
 
             <aside className="dashboard-clean-status">
               <div>
-                <span className="status-label">Updated</span>
-                <strong>{updatedAt ? new Date(updatedAt).toLocaleString("fr-FR") : "--"}</strong>
+                <span className="status-label">{common.common.updated}</span>
+                <strong>{updatedAt ? new Date(updatedAt).toLocaleString(localeForDate(locale)) : "--"}</strong>
               </div>
               <div>
-                <span className="status-label">Moyenne 1 an</span>
+                <span className="status-label">{copy.annualMean}</span>
                 <strong>{formatSignedPercent(annualMean, 1)}</strong>
               </div>
               <div>
-                <span className="status-label">Vol moyenne</span>
+                <span className="status-label">{copy.avgVol}</span>
                 <strong>{formatPercent(averageVol, 1)}</strong>
               </div>
               <div>
-                <span className="status-label">Vol actuelle</span>
+                <span className="status-label">{copy.currentVol}</span>
                 <strong>{formatPercent(currentVol, 1)}</strong>
               </div>
               <div>
-                <span className="status-label">Perf derniere annee</span>
+                <span className="status-label">{copy.lastYearPerf}</span>
                 <strong>{formatSignedPercent(pathModel?.lastYearReturn ?? 0, 1)}</strong>
               </div>
             </aside>
@@ -303,7 +533,7 @@ export default async function AssetDashboardPage({ params }) {
               <div className="asset-clean-header">
                 <div>
                   <p className="forecast-asset-code">{asset.asset_code}</p>
-                  <h3>Market profile</h3>
+                  <h3>{copy.marketProfile}</h3>
                 </div>
               </div>
 
@@ -326,7 +556,7 @@ export default async function AssetDashboardPage({ params }) {
                 </div>
                 <div className="snapshot-item">
                   <span>Earnings Date (est.)</span>
-                  <strong>{formatDateLabel(yahooSnapshot.earningsDate)}</strong>
+                  <strong>{formatDateLabel(yahooSnapshot.earningsDate, locale)}</strong>
                 </div>
                 <div className="snapshot-item">
                   <span>Forward Dividend &amp; Yield</span>
@@ -334,7 +564,7 @@ export default async function AssetDashboardPage({ params }) {
                 </div>
                 <div className="snapshot-item">
                   <span>Ex-Dividend Date</span>
-                  <strong>{formatDateLabel(yahooSnapshot.exDividendDate)}</strong>
+                  <strong>{formatDateLabel(yahooSnapshot.exDividendDate, locale)}</strong>
                 </div>
                 <div className="snapshot-item">
                   <span>1y Target Est</span>
@@ -349,10 +579,10 @@ export default async function AssetDashboardPage({ params }) {
               <div className="asset-clean-header">
                 <div>
                   <p className="forecast-asset-code">{asset.asset_code}</p>
-                  <h3>Comportement sur 1 an vs S&amp;P 500</h3>
+                  <h3>{`${copy.benchmark} ${benchmarkStudy.benchmarkName}`}</h3>
                 </div>
                 <span className={`outcome-pill ${performanceTone(benchmarkStudy.excessReturn)}`}>
-                  {benchmarkStudy.relativeLabel}
+                  {benchmarkRelativeLabelForLocale(benchmarkStudy.relativeLabel, locale)}
                 </span>
               </div>
 
@@ -370,26 +600,26 @@ export default async function AssetDashboardPage({ params }) {
                   </strong>
                 </div>
                 <div className="benchmark-item">
-                  <span>Surperformance</span>
+                  <span>{copy.outperformance}</span>
                   <strong className={performanceTone(benchmarkStudy.excessReturn)}>
                     {formatSignedPercent(benchmarkStudy.excessReturn, 1)}
                   </strong>
                 </div>
                 <div className="benchmark-item">
-                  <span>Beta realise</span>
+                  <span>{copy.realizedBeta}</span>
                   <strong>{benchmarkStudy.realizedBeta ? formatDecimal(benchmarkStudy.realizedBeta, 2) : "--"}</strong>
                 </div>
               </div>
 
               <div className="benchmark-grid benchmark-grid-secondary">
                 <div className="benchmark-item">
-                  <span>Jours de hausse du SPX surperformes</span>
+                  <span>{copy.upDays}</span>
                   <strong>
                     {benchmarkStudy.upCaptureShare !== null ? formatPercent(benchmarkStudy.upCaptureShare, 0) : "--"}
                   </strong>
                 </div>
                 <div className="benchmark-item">
-                  <span>Jours de baisse du SPX mieux resistes</span>
+                  <span>{copy.downDays}</span>
                   <strong>
                     {benchmarkStudy.downCaptureShare !== null ? formatPercent(benchmarkStudy.downCaptureShare, 0) : "--"}
                   </strong>
@@ -403,25 +633,25 @@ export default async function AssetDashboardPage({ params }) {
               <div className="asset-clean-header">
                 <div>
                   <p className="forecast-asset-code">{asset.asset_code}</p>
-                  <h3>Interpretation scenario</h3>
+                  <h3>{copy.scenario}</h3>
                 </div>
                 <span className={`outcome-pill ${scenarioBandTone(scenarioAnalysis.probabilityBand)}`}>
-                  {scenarioAnalysis.profile}
+                  {scenarioProfileLabel(Number(scenarioAnalysis.beta ?? 1), locale)}
                 </span>
               </div>
 
-              <p className="scenario-intro">{scenarioAnalysis.commentary}</p>
+              <p className="scenario-intro">{profileSummary(scenarioAnalysis, asset.asset_name, locale)}</p>
 
               <div className="scenario-grid">
                 <div className="scenario-panel">
                   <div className="scenario-panel-top">
-                    <span>1 mois</span>
-                    <strong>Lecture beta + signal court terme</strong>
+                    <span>{copy.oneMonth}</span>
+                    <strong>{copy.shortRead}</strong>
                   </div>
                   <div className="scenario-list">
                     {scenarioAnalysis.oneMonthRows.map((row) => (
                       <div key={`1m-${row.label}`} className="scenario-row">
-                        <span>{row.label}</span>
+                        <span>{scenarioRowLabel(row.label, locale)}</span>
                         <strong className={performanceTone(row.probableReturn)}>
                           {formatSignedPercent(row.probableReturn, 1)}
                         </strong>
@@ -432,13 +662,13 @@ export default async function AssetDashboardPage({ params }) {
 
                 <div className="scenario-panel">
                   <div className="scenario-panel-top">
-                    <span>1 an</span>
-                    <strong>Lecture beta + carry + profil global</strong>
+                    <span>{copy.oneYear}</span>
+                    <strong>{copy.longRead}</strong>
                   </div>
                   <div className="scenario-list">
                     {scenarioAnalysis.oneYearRows.map((row) => (
                       <div key={`1y-${row.label}`} className="scenario-row">
-                        <span>{row.label}</span>
+                        <span>{scenarioRowLabel(row.label, locale)}</span>
                         <strong className={performanceTone(row.probableReturn)}>
                           {formatSignedPercent(row.probableReturn, 1)}
                         </strong>
@@ -454,7 +684,7 @@ export default async function AssetDashboardPage({ params }) {
             <div className="asset-clean-header">
               <div>
                 <p className="forecast-asset-code">{asset.asset_code}</p>
-                <h3>Table des horizons</h3>
+                <h3>{copy.horizonTable}</h3>
               </div>
             </div>
 
@@ -462,15 +692,9 @@ export default async function AssetDashboardPage({ params }) {
               <table className="asset-clean-table">
                 <thead>
                   <tr>
-                    <th>Horizon</th>
-                    <th>Perf</th>
-                    <th>Perf ann.</th>
-                    <th>Norme</th>
-                    <th>Vol</th>
-                    <th>Prob.</th>
-                    <th>Drawdown</th>
-                    <th>Risk</th>
-                    <th>Conf.</th>
+                    {copy.tableHeaders.map((header) => (
+                      <th key={header}>{header}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -481,12 +705,14 @@ export default async function AssetDashboardPage({ params }) {
                     if (!item) {
                       return (
                         <tr key={`${asset.asset_code}-${horizon}`}>
-                          <td>{horizonLabel(horizon)}</td>
+                          <td>{horizonLabelForLocale(horizon, locale)}</td>
                           <td className={historyItem ? performanceTone(historyItem.trailingReturn) : "empty-cell"}>
                             {historyItem ? formatSignedPercent(historyItem.trailingReturn, 1) : "--"}
                           </td>
                           <td>{annualizedDisplay(historyItem)}</td>
-                          <td colSpan={6} className="empty-cell">--</td>
+                          <td colSpan={6} className="empty-cell">
+                            --
+                          </td>
                         </tr>
                       );
                     }
@@ -496,10 +722,8 @@ export default async function AssetDashboardPage({ params }) {
 
                     return (
                       <tr key={`${asset.asset_code}-${horizon}`}>
-                        <td>{horizonLabel(horizon)}</td>
-                        <td className={performanceTone(trailingValue)}>
-                          {formatSignedPercent(trailingValue, 1)}
-                        </td>
+                        <td>{horizonLabelForLocale(horizon, locale)}</td>
+                        <td className={performanceTone(trailingValue)}>{formatSignedPercent(trailingValue, 1)}</td>
                         <td>{annualizedDisplay(historyItem)}</td>
                         <td>{formatSignedPercent(item.historical_mean, 1)}</td>
                         <td>{formatPercent(item.historical_vol, 1)}</td>
@@ -507,10 +731,10 @@ export default async function AssetDashboardPage({ params }) {
                           {formatPercent(item.upside_probability, 1)}
                         </td>
                         <td>{formatSignedPercent(item.expected_drawdown, 1)}</td>
-                        <td className={riskTone(risk)}>{risk}</td>
+                        <td className={riskTone(risk)}>{riskLabelForLocale(risk, locale)}</td>
                         <td>
                           <span className={`confidence-pill ${confidenceTone(item.confidence_label)}`}>
-                            {item.confidence_label}
+                            {confidenceLabelForLocale(item.confidence_label, locale)}
                           </span>
                         </td>
                       </tr>
@@ -525,16 +749,13 @@ export default async function AssetDashboardPage({ params }) {
             <div className="asset-clean-header asset-curve-header">
               <div>
                 <p className="forecast-asset-code">{asset.asset_code}</p>
-                <h3>Projection quotidienne a 1 an</h3>
+                <h3>{copy.chart}</h3>
               </div>
-              <p className="asset-curve-header-copy">
-                Courbe verte: scénario prudent projeté. Droite bleue: moyenne historique linéaire.
-                Faisceau sable: moyenne plus ou moins 2 écarts-types.
-              </p>
+              <p className="asset-curve-header-copy">{copy.chartText}</p>
             </div>
 
             <div className="asset-curve-shell">
-              <svg viewBox={`0 0 ${width} ${height}`} className="asset-curve-chart" role="img" aria-label="Projected 1-year path">
+              <svg viewBox={`0 0 ${width} ${height}`} className="asset-curve-chart" role="img" aria-label={copy.chart}>
                 {yTicks.map((tick) => {
                   const y = yForValue(tick, height, padding, valueMin, valueMax);
                   return (
@@ -569,9 +790,9 @@ export default async function AssetDashboardPage({ params }) {
                 ) : null}
               </svg>
               <div className="asset-curve-legend">
-                <span><i className="legend-line legend-line-projected" />Projection prudente a 1 an</span>
-                <span><i className="legend-line legend-line-mean" />Moyenne historique lineaire</span>
-                <span><i className="legend-line legend-line-band" />Faisceau moyenne plus ou moins 2 ecarts-types</span>
+                <span><i className="legend-line legend-line-projected" />{copy.legendProjected}</span>
+                <span><i className="legend-line legend-line-mean" />{copy.legendMean}</span>
+                <span><i className="legend-line legend-line-band" />{copy.legendBand}</span>
               </div>
             </div>
           </article>
@@ -580,47 +801,26 @@ export default async function AssetDashboardPage({ params }) {
             <div className="asset-clean-header">
               <div>
                 <p className="forecast-asset-code">{asset.asset_code}</p>
-                <h3>Principes de lecture</h3>
+                <h3>{copy.readingPrinciples}</h3>
               </div>
             </div>
 
             <div className="methodology-grid">
               <div className="methodology-panel">
-                <h4>Chemin parcouru</h4>
-                <p>
-                  La performance terminale ne suffit pas. Northcurve suit aussi le chemin parcouru, c'est-a-dire
-                  la somme des variations quotidiennes absolues sur la fenetre. Deux actifs peuvent finir a
-                  plus 10 pour cent sur un an avec des signatures de risque tres differentes. Cette notion sert
-                  a calibrer la nervosite visuelle et la largeur du scenario projete.
-                </p>
+                <h4>{copy.pathTitle}</h4>
+                <p>{copy.pathText}</p>
               </div>
-
               <div className="methodology-panel">
-                <h4>Probabilites prudentes</h4>
-                <p>
-                  La probabilite de hausse compare la performance trailing a sa moyenne historique et a sa
-                  volatilite historique sur chaque horizon. Plus un actif est etire au-dessus de sa norme,
-                  relativement a sa volatilite historique, plus la probabilite future baisse. Le cadre retenu
-                  ici est volontairement conservateur pour penaliser les extensions de marche.
-                </p>
+                <h4>{copy.probTitle}</h4>
+                <p>{copy.probText}</p>
               </div>
-
               <div className="methodology-panel">
-                <h4>Lecture multi-horizons</h4>
-                <p>
-                  La table croise le passe observe et le futur probable. La colonne Perf mesure ce qui vient
-                  reellement de se produire. La colonne Norme rappelle la moyenne historique sur l'horizon.
-                  La probabilite est ensuite une lecture seche et prudente de l'ecart entre les deux.
-                </p>
+                <h4>{copy.multiTitle}</h4>
+                <p>{copy.multiText}</p>
               </div>
-
               <div className="methodology-panel">
-                <h4>Projection a un an</h4>
-                <p>
-                  Le graphique de fin ne cherche pas a dessiner un prix exact. Il projette un indice base 100
-                  avec une nervosite quotidienne proche de l'historique recent, puis l'oriente avec la moyenne
-                  historique et les probabilites deja calculees sur les horizons courts et intermediaires.
-                </p>
+                <h4>{copy.projectionTitle}</h4>
+                <p>{copy.projectionText}</p>
               </div>
             </div>
           </article>

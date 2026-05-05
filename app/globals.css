@@ -139,6 +139,35 @@ textarea {
   gap: 14px;
 }
 
+.locale-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.locale-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.locale-chip-active {
+  color: #08111d;
+  background: linear-gradient(135deg, var(--accent) 0%, #c6f3dd 100%);
+}
+
 .link-secondary {
   color: var(--muted);
   font-family: Arial, Helvetica, sans-serif;
