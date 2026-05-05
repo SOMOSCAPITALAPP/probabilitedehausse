@@ -1,7 +1,6 @@
 import {
   formatPercent,
   formatSignedPercent,
-  getAssetsTrendMap,
   getForecasts,
   groupForecastsByAsset,
 } from "../../lib/forecast-data";
@@ -56,28 +55,12 @@ function classifyTone(score) {
   return "prob-neutral";
 }
 
-function trendSummary(label) {
-  if (label === "haussiere") {
-    return "Le cours reste au-dessus de la moyenne 200 jours et la moyenne 50 jours confirme la tendance.";
-  }
-  if (label === "haussiere fragile") {
-    return "Le cours reste au-dessus de la moyenne 200 jours, mais la moyenne 50 jours ne confirme pas encore pleinement.";
-  }
-  if (label === "baissiere") {
-    return "Le cours reste sous la moyenne 200 jours et la moyenne 50 jours confirme la faiblesse.";
-  }
-  return "La lecture 50 jours et 200 jours reste de transition.";
-}
-
-function buildBullArguments(asset, trend) {
+function buildBullArguments(asset) {
   const month = asset.horizons["21D"];
   const quarter = asset.horizons["63D"];
   const year = asset.horizons["1Y"];
   const argumentsList = [];
 
-  if (trend?.label === "haussiere" || trend?.label === "haussiere fragile") {
-    argumentsList.push(trendSummary(trend.label));
-  }
   if (month && Number(month.upside_probability ?? 0) >= 0.55) {
     argumentsList.push(`Le signal a 1 mois ressort a ${formatPercent(month.upside_probability, 0)}, au-dessus de l'equilibre.`);
   }
@@ -97,15 +80,12 @@ function buildBullArguments(asset, trend) {
   return argumentsList.slice(0, 4);
 }
 
-function buildBearArguments(asset, trend) {
+function buildBearArguments(asset) {
   const month = asset.horizons["21D"];
   const quarter = asset.horizons["63D"];
   const year = asset.horizons["1Y"];
   const argumentsList = [];
 
-  if (trend?.label === "baissiere" || trend?.label === "transition / mixed") {
-    argumentsList.push(trendSummary(trend.label));
-  }
   if (month && Number(month.upside_probability ?? 0) <= 0.45) {
     argumentsList.push(`Le signal a 1 mois ne donne que ${formatPercent(month.upside_probability, 0)} de probabilite de hausse.`);
   }
@@ -169,11 +149,9 @@ function buildHref(classFilter, sortKey) {
   return query ? `/classement?${query}` : "/classement";
 }
 
-async function buildRankedAssets(assets) {
-  const trendMap = await getAssetsTrendMap(assets.map((asset) => asset.asset_code));
-
-  const enriched = await Promise.all(
-    assets.map(async (asset) => {
+function buildRankedAssets(assets) {
+  return assets
+    .map((asset) => {
       const combined = buildCombinedScore(asset);
       if (!combined) return null;
 
@@ -187,12 +165,9 @@ async function buildRankedAssets(assets) {
           "63D": buildHorizonScore(asset, "63D"),
           "1Y": buildHorizonScore(asset, "1Y"),
         },
-        trend: trendMap[asset.asset_code] || null,
       };
-    }),
-  );
-
-  return enriched.filter(Boolean);
+    })
+    .filter(Boolean);
 }
 
 function sortRankedAssets(assets, sortKey, direction = "desc") {
@@ -242,7 +217,7 @@ function RankTable({ title, description, rows, mode, sortKey }) {
           </thead>
           <tbody>
             {rows.map((asset) => {
-              const args = mode === "bull" ? buildBullArguments(asset, asset.trend) : buildBearArguments(asset, asset.trend);
+              const args = mode === "bull" ? buildBullArguments(asset) : buildBearArguments(asset);
               const signal = signalProbability(asset, sortKey);
 
               return (
@@ -295,7 +270,7 @@ export default async function ClassementPage({ searchParams }) {
   const resolvedSearchParams = searchParams && typeof searchParams.then === "function" ? await searchParams : searchParams;
   const { forecasts, source, updatedAt, diagnostics = [] } = await getForecasts();
   const assets = groupForecastsByAsset(forecasts);
-  const rankedAssets = await buildRankedAssets(assets);
+  const rankedAssets = buildRankedAssets(assets);
 
   const rawClass = resolvedSearchParams?.class;
   const rawSort = resolvedSearchParams?.sort;
