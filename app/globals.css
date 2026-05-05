@@ -1564,6 +1564,20 @@ h3 {
   overflow: hidden;
 }
 
+.conviction-filters-card {
+  display: grid;
+  gap: 16px;
+}
+
+.conviction-filter-group {
+  display: grid;
+  gap: 10px;
+}
+
+.conviction-filter-nav {
+  margin-top: 0;
+}
+
 .conviction-header {
   align-items: flex-start;
 }

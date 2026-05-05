@@ -1,5 +1,4 @@
 import {
-  PROBABILITY_RANK_HORIZONS,
   buildMovingAverageTrend,
   formatPercent,
   formatSignedPercent,
@@ -10,6 +9,24 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const CLASS_FILTERS = [
+  { key: "all", label: "Tous" },
+  { key: "equity_indices", label: "Indices actions" },
+  { key: "rates", label: "Taux" },
+  { key: "fx", label: "Devises" },
+  { key: "commodities", label: "Matieres premieres" },
+  { key: "crypto", label: "Crypto" },
+  { key: "volatility", label: "Volatilite" },
+  { key: "equities", label: "Actions" },
+];
+
+const SORT_OPTIONS = [
+  { key: "combined", label: "Combine" },
+  { key: "21D", label: "1 mois" },
+  { key: "63D", label: "3 mois" },
+  { key: "1Y", label: "1 an" },
+];
+
 function sourceLabel(source) {
   if (source === "google_sheets") return "Google Sheets";
   if (source === "postgres") return "Local Postgres";
@@ -19,6 +36,19 @@ function sourceLabel(source) {
 function average(values) {
   if (!values.length) return null;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function assetSectionKey(asset) {
+  const assetClass = String(asset.asset_class || "").toLowerCase();
+
+  if (assetClass === "equity_index" || assetClass === "sector_index") return "equity_indices";
+  if (assetClass === "rates" || assetClass === "bond_etf" || assetClass === "money_market_etf") return "rates";
+  if (assetClass === "fx") return "fx";
+  if (assetClass === "commodity") return "commodities";
+  if (assetClass === "crypto") return "crypto";
+  if (assetClass === "volatility") return "volatility";
+  if (assetClass === "equity_single") return "equities";
+  return "equity_indices";
 }
 
 function classifyTone(score) {
@@ -50,19 +80,19 @@ function buildBullArguments(asset, trend) {
     argumentsList.push(trendSummary(trend.label));
   }
   if (month && Number(month.upside_probability ?? 0) >= 0.55) {
-    argumentsList.push(`Le signal à 1 mois ressort à ${formatPercent(month.upside_probability, 0)}, au-dessus de l'équilibre.`);
+    argumentsList.push(`Le signal a 1 mois ressort a ${formatPercent(month.upside_probability, 0)}, au-dessus de l'equilibre.`);
   }
   if (quarter && Number(quarter.upside_probability ?? 0) >= 0.55) {
-    argumentsList.push(`Le scénario à 3 mois reste constructif avec ${formatPercent(quarter.upside_probability, 0)} de probabilité de hausse.`);
+    argumentsList.push(`Le scenario a 3 mois reste constructif avec ${formatPercent(quarter.upside_probability, 0)} de probabilite de hausse.`);
   }
   if (year && Number(year.upside_probability ?? 0) >= 0.55) {
-    argumentsList.push(`L'horizon 1 an conserve un biais favorable à ${formatPercent(year.upside_probability, 0)}.`);
+    argumentsList.push(`L'horizon 1 an conserve un biais favorable a ${formatPercent(year.upside_probability, 0)}.`);
   }
   if (month && Number(month.trailing_return ?? 0) < Number(month.historical_mean ?? 0)) {
-    argumentsList.push("La performance récente à 1 mois reste sous sa norme historique, ce qui laisse une marge de normalisation.");
+    argumentsList.push("La performance recente a 1 mois reste sous sa norme historique, ce qui laisse une marge de normalisation.");
   }
   if (quarter && Number(quarter.expected_drawdown ?? 0) > -0.08) {
-    argumentsList.push("Le drawdown probabiliste à 3 mois reste contenu au regard des autres actifs.");
+    argumentsList.push("Le drawdown probabiliste a 3 mois reste contenu au regard des autres actifs.");
   }
 
   return argumentsList.slice(0, 4);
@@ -78,38 +108,49 @@ function buildBearArguments(asset, trend) {
     argumentsList.push(trendSummary(trend.label));
   }
   if (month && Number(month.upside_probability ?? 0) <= 0.45) {
-    argumentsList.push(`Le signal à 1 mois ne donne que ${formatPercent(month.upside_probability, 0)} de probabilité de hausse.`);
+    argumentsList.push(`Le signal a 1 mois ne donne que ${formatPercent(month.upside_probability, 0)} de probabilite de hausse.`);
   }
   if (quarter && Number(quarter.upside_probability ?? 0) <= 0.45) {
-    argumentsList.push(`Le scénario à 3 mois reste défavorable avec seulement ${formatPercent(quarter.upside_probability, 0)} de probabilité de hausse.`);
+    argumentsList.push(`Le scenario a 3 mois reste defavorable avec seulement ${formatPercent(quarter.upside_probability, 0)} de probabilite de hausse.`);
   }
   if (year && Number(year.upside_probability ?? 0) <= 0.45) {
-    argumentsList.push(`L'horizon 1 an reste prudent à ${formatPercent(year.upside_probability, 0)} seulement.`);
+    argumentsList.push(`L'horizon 1 an reste prudent a ${formatPercent(year.upside_probability, 0)} seulement.`);
   }
   if (month && Number(month.trailing_return ?? 0) > Number(month.historical_mean ?? 0)) {
-    argumentsList.push("La performance récente à 1 mois est déjà au-dessus de sa norme historique, ce qui réduit le potentiel immédiat.");
+    argumentsList.push("La performance recente a 1 mois est deja au-dessus de sa norme historique, ce qui reduit le potentiel immediat.");
   }
   if (quarter && Number(quarter.expected_drawdown ?? 0) <= -0.08) {
-    argumentsList.push("Le drawdown probabiliste à 3 mois reste marqué, ce qui dégrade le couple rendement-risque.");
+    argumentsList.push("Le drawdown probabiliste a 3 mois reste marque, ce qui degrade le couple rendement-risque.");
   }
 
   return argumentsList.slice(0, 4);
 }
 
-function buildRankScore(asset) {
-  const relevant = PROBABILITY_RANK_HORIZONS.map((horizon) => asset.horizons[horizon]).filter(Boolean);
+function buildCombinedScore(asset) {
+  const relevant = ["21D", "63D", "1Y"].map((horizon) => asset.horizons[horizon]).filter(Boolean);
   if (!relevant.length) return null;
 
   const avgProbability = average(relevant.map((item) => Number(item.upside_probability ?? 0.5))) ?? 0.5;
   const avgExpected = average(relevant.map((item) => Number(item.expected_return ?? 0))) ?? 0;
   const avgDrawdown = average(relevant.map((item) => Math.abs(Number(item.expected_drawdown ?? 0)))) ?? 0;
-  const score = avgProbability + avgExpected * 0.9 - avgDrawdown * 0.45;
 
   return {
-    score,
-    avgProbability,
-    avgExpected,
-    avgDrawdown,
+    score: avgProbability + avgExpected * 0.9 - avgDrawdown * 0.45,
+    probability: avgProbability,
+  };
+}
+
+function buildHorizonScore(asset, horizon) {
+  const row = asset.horizons[horizon];
+  if (!row) return null;
+
+  const probability = Number(row.upside_probability ?? 0.5);
+  const expected = Number(row.expected_return ?? 0);
+  const drawdown = Math.abs(Number(row.expected_drawdown ?? 0));
+
+  return {
+    score: probability + expected * 0.9 - drawdown * 0.45,
+    probability,
   };
 }
 
@@ -121,19 +162,33 @@ function horizonValue(asset, horizon, key) {
     : formatSignedPercent(row.expected_return, 1);
 }
 
+function buildHref(classFilter, sortKey) {
+  const params = new URLSearchParams();
+  if (classFilter && classFilter !== "all") params.set("class", classFilter);
+  if (sortKey && sortKey !== "combined") params.set("sort", sortKey);
+  const query = params.toString();
+  return query ? `/classement?${query}` : "/classement";
+}
+
 async function buildRankedAssets(assets) {
   const enriched = await Promise.all(
     assets.map(async (asset) => {
-      const score = buildRankScore(asset);
-      if (!score) return null;
+      const combined = buildCombinedScore(asset);
+      if (!combined) return null;
+
       const historyRows = await getAssetHistory(asset.asset_code);
       const trend = buildMovingAverageTrend(historyRows);
+
       return {
         ...asset,
-        rank_score: score.score,
-        rank_probability: score.avgProbability,
-        rank_expected: score.avgExpected,
-        rank_drawdown: score.avgDrawdown,
+        section_key: assetSectionKey(asset),
+        rank_score: combined.score,
+        rank_probability: combined.probability,
+        horizon_scores: {
+          "21D": buildHorizonScore(asset, "21D"),
+          "63D": buildHorizonScore(asset, "63D"),
+          "1Y": buildHorizonScore(asset, "1Y"),
+        },
         trend,
       };
     }),
@@ -142,7 +197,29 @@ async function buildRankedAssets(assets) {
   return enriched.filter(Boolean);
 }
 
-function RankTable({ title, description, rows, mode }) {
+function sortRankedAssets(assets, sortKey, direction = "desc") {
+  const scoreFor = (asset) => {
+    if (sortKey === "combined") return asset.rank_score;
+    return asset.horizon_scores?.[sortKey]?.score ?? null;
+  };
+
+  return assets
+    .filter((asset) => scoreFor(asset) !== null)
+    .sort((left, right) => {
+      const leftScore = scoreFor(left);
+      const rightScore = scoreFor(right);
+      return direction === "desc" ? rightScore - leftScore : leftScore - rightScore;
+    });
+}
+
+function signalProbability(asset, sortKey) {
+  if (sortKey === "combined") return asset.rank_probability;
+  return asset.horizon_scores?.[sortKey]?.probability ?? 0.5;
+}
+
+function RankTable({ title, description, rows, mode, sortKey }) {
+  const sortLabel = SORT_OPTIONS.find((item) => item.key === sortKey)?.label || sortKey;
+
   return (
     <article className="asset-clean-card conviction-card">
       <div className="asset-clean-header conviction-header">
@@ -158,7 +235,7 @@ function RankTable({ title, description, rows, mode }) {
           <thead>
             <tr>
               <th>Actif</th>
-              <th>Prob. moyenne</th>
+              <th>{sortKey === "combined" ? "Prob. moyenne" : `Signal ${sortLabel}`}</th>
               <th>1 mois</th>
               <th>3 mois</th>
               <th>1 an</th>
@@ -168,6 +245,8 @@ function RankTable({ title, description, rows, mode }) {
           <tbody>
             {rows.map((asset) => {
               const args = mode === "bull" ? buildBullArguments(asset, asset.trend) : buildBearArguments(asset, asset.trend);
+              const signal = signalProbability(asset, sortKey);
+
               return (
                 <tr key={`${mode}-${asset.asset_code}`}>
                   <td>
@@ -178,7 +257,7 @@ function RankTable({ title, description, rows, mode }) {
                       <span>{asset.asset_name}</span>
                     </div>
                   </td>
-                  <td className={classifyTone(asset.rank_probability)}>{formatPercent(asset.rank_probability, 0)}</td>
+                  <td className={classifyTone(signal)}>{formatPercent(signal, 0)}</td>
                   <td>
                     <div className="conviction-horizon-cell">
                       <strong>{horizonValue(asset, "21D", "expected")}</strong>
@@ -214,20 +293,23 @@ function RankTable({ title, description, rows, mode }) {
   );
 }
 
-export default async function ClassementPage() {
+export default async function ClassementPage({ searchParams }) {
   const { forecasts, source, updatedAt, diagnostics = [] } = await getForecasts();
   const assets = groupForecastsByAsset(forecasts);
   const rankedAssets = await buildRankedAssets(assets);
 
-  const bullish = rankedAssets
-    .slice()
-    .sort((left, right) => right.rank_score - left.rank_score)
-    .slice(0, 10);
+  const rawClass = searchParams?.class;
+  const rawSort = searchParams?.sort;
+  const classFilter = CLASS_FILTERS.some((item) => item.key === rawClass) ? rawClass : "all";
+  const sortKey = SORT_OPTIONS.some((item) => item.key === rawSort) ? rawSort : "combined";
 
-  const bearish = rankedAssets
-    .slice()
-    .sort((left, right) => left.rank_score - right.rank_score)
-    .slice(0, 10);
+  const filteredAssets =
+    classFilter === "all"
+      ? rankedAssets
+      : rankedAssets.filter((asset) => asset.section_key === classFilter);
+
+  const bullish = sortRankedAssets(filteredAssets.slice(), sortKey, "desc").slice(0, 10);
+  const bearish = sortRankedAssets(filteredAssets.slice(), sortKey, "asc").slice(0, 10);
 
   return (
     <main className="dashboard-shell dashboard-clean-shell">
@@ -257,10 +339,10 @@ export default async function ClassementPage() {
           <p className="eyebrow">Classement probabiliste</p>
           <div className="dashboard-clean-top">
             <div>
-              <h1 className="dashboard-clean-title">Les actifs les plus favorables à la hausse et à la baisse.</h1>
+              <h1 className="dashboard-clean-title">Les actifs les plus favorables a la hausse et a la baisse.</h1>
               <p className="hero-text dashboard-clean-copy">
-                Cette page classe les actifs selon leur lecture probabiliste combinée à 1 mois, 3 mois et 1 an.
-                Chaque ligne affiche le niveau probable, la probabilité moyenne et les principaux arguments de lecture.
+                Cette page classe les actifs selon leur lecture probabiliste combinee a 1 mois, 3 mois et 1 an.
+                Chaque ligne affiche le niveau probable, la probabilite moyenne et les principaux arguments de lecture.
               </p>
             </div>
 
@@ -274,8 +356,8 @@ export default async function ClassementPage() {
                 <strong>{updatedAt ? new Date(updatedAt).toLocaleString("fr-FR") : "Demo mode"}</strong>
               </div>
               <div>
-                <span className="status-label">Actifs classés</span>
-                <strong>{rankedAssets.length}</strong>
+                <span className="status-label">Actifs classes</span>
+                <strong>{filteredAssets.length}</strong>
               </div>
               {diagnostics.length > 0 ? (
                 <div>
@@ -290,18 +372,52 @@ export default async function ClassementPage() {
 
       <section className="section dashboard-clean-section">
         <div className="container conviction-layout">
+          <div className="asset-clean-card conviction-filters-card">
+            <div className="conviction-filter-group">
+              <span className="status-label">Classe d'actifs</span>
+              <div className="dashboard-jump-nav conviction-filter-nav">
+                {CLASS_FILTERS.map((item) => (
+                  <a
+                    key={item.key}
+                    href={buildHref(item.key, sortKey)}
+                    className={`dashboard-jump-chip ${classFilter === item.key ? "dashboard-jump-chip-accent" : ""}`}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div className="conviction-filter-group">
+              <span className="status-label">Tri principal</span>
+              <div className="dashboard-jump-nav conviction-filter-nav">
+                {SORT_OPTIONS.map((item) => (
+                  <a
+                    key={item.key}
+                    href={buildHref(classFilter, item.key)}
+                    className={`dashboard-jump-chip ${sortKey === item.key ? "dashboard-jump-chip-accent" : ""}`}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
           <RankTable
             title="Les 10 actifs les plus favorables pour une hausse"
-            description="Scoring combiné sur les probabilités et niveaux attendus à 1 mois, 3 mois et 1 an."
+            description="Lecture la plus favorable sur la combinaison choisie, avec niveaux attendus a 1 mois, 3 mois et 1 an."
             rows={bullish}
             mode="bull"
+            sortKey={sortKey}
           />
 
           <RankTable
             title="Les 10 actifs les plus favorables pour une baisse"
-            description="Classement inverse, orienté prudence, quand la probabilité de hausse devient la plus faible."
+            description="Lecture inverse, orientee prudence, quand le signal de hausse devient le plus faible sur l'horizon choisi."
             rows={bearish}
             mode="bear"
+            sortKey={sortKey}
           />
         </div>
       </section>
