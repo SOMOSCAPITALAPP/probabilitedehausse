@@ -1,8 +1,7 @@
 import {
-  buildMovingAverageTrend,
   formatPercent,
   formatSignedPercent,
-  getAssetHistory,
+  getAssetsTrendMap,
   getForecasts,
   groupForecastsByAsset,
 } from "../../lib/forecast-data";
@@ -171,13 +170,12 @@ function buildHref(classFilter, sortKey) {
 }
 
 async function buildRankedAssets(assets) {
+  const trendMap = await getAssetsTrendMap(assets.map((asset) => asset.asset_code));
+
   const enriched = await Promise.all(
     assets.map(async (asset) => {
       const combined = buildCombinedScore(asset);
       if (!combined) return null;
-
-      const historyRows = await getAssetHistory(asset.asset_code);
-      const trend = buildMovingAverageTrend(historyRows);
 
       return {
         ...asset,
@@ -189,7 +187,7 @@ async function buildRankedAssets(assets) {
           "63D": buildHorizonScore(asset, "63D"),
           "1Y": buildHorizonScore(asset, "1Y"),
         },
-        trend,
+        trend: trendMap[asset.asset_code] || null,
       };
     }),
   );
@@ -294,12 +292,13 @@ function RankTable({ title, description, rows, mode, sortKey }) {
 }
 
 export default async function ClassementPage({ searchParams }) {
+  const resolvedSearchParams = searchParams && typeof searchParams.then === "function" ? await searchParams : searchParams;
   const { forecasts, source, updatedAt, diagnostics = [] } = await getForecasts();
   const assets = groupForecastsByAsset(forecasts);
   const rankedAssets = await buildRankedAssets(assets);
 
-  const rawClass = searchParams?.class;
-  const rawSort = searchParams?.sort;
+  const rawClass = resolvedSearchParams?.class;
+  const rawSort = resolvedSearchParams?.sort;
   const classFilter = CLASS_FILTERS.some((item) => item.key === rawClass) ? rawClass : "all";
   const sortKey = SORT_OPTIONS.some((item) => item.key === rawSort) ? rawSort : "combined";
 
