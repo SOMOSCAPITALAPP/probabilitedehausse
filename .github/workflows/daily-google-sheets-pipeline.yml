@@ -1,0 +1,77 @@
+name: Daily Google Sheets Pipeline
+
+on:
+  schedule:
+    - cron: "5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: daily-google-sheets-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run-daily-pipeline:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check Paris midnight window
+        id: paris-window
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+
+          now = datetime.now(ZoneInfo("Europe/Paris"))
+          should_run = now.hour == 0
+
+          print(f"Paris time: {now.isoformat()}")
+          print(f"Should run: {should_run}")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as handle:
+              handle.write(f"should_run={'true' if should_run else 'false'}\n")
+          PY
+
+      - name: Stop outside Paris midnight window
+        if: github.event_name == 'schedule' && steps.paris-window.outputs.should_run != 'true'
+        run: echo "Outside 00h Paris window, exiting without running the pipeline."
+
+      - name: Install engine dependencies
+        if: github.event_name == 'workflow_dispatch' || steps.paris-window.outputs.should_run == 'true'
+        run: pip install -r engine/requirements.txt
+
+      - name: Write Google service account file
+        if: github.event_name == 'workflow_dispatch' || steps.paris-window.outputs.should_run == 'true'
+        shell: bash
+        env:
+          NC_GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.NC_GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          raw = os.environ["NC_GOOGLE_SERVICE_ACCOUNT_JSON"]
+          target = Path("engine") / "service-account.json"
+          target.write_text(json.dumps(json.loads(raw)), encoding="utf-8")
+          print(f"Wrote {target}")
+          PY
+
+      - name: Run daily Google Sheets pipeline
+        if: github.event_name == 'workflow_dispatch' || steps.paris-window.outputs.should_run == 'true'
+        env:
+          NC_GOOGLE_SERVICE_ACCOUNT_FILE: engine/service-account.json
+          NC_GOOGLE_SHEETS_SPREADSHEET_ID: ${{ secrets.NC_GOOGLE_SHEETS_SPREADSHEET_ID }}
+          NC_YAHOO_LOOKBACK_DAYS: 10d
+        run: python engine/jobs/run_daily_google_sheets_pipeline.py
