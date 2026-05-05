@@ -115,6 +115,7 @@ const COPY = {
 
 function sourceLabel(source, locale) {
   if (source === "google_sheets") return "Google Sheets";
+  if (source === "snapshot") return locale === "en" ? "Local snapshot" : locale === "pt-BR" ? "Snapshot local" : "Snapshot local";
   if (source === "postgres") return locale === "en" ? "Local Postgres" : "Postgres local";
   return locale === "fr" ? "Mode démo" : locale === "pt-BR" ? "Modo demo" : "Demo mode";
 }

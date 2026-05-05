@@ -128,6 +128,7 @@ const DASHBOARD_COPY = {
 
 function sourceLabel(source, locale) {
   if (source === "google_sheets") return "Google Sheets";
+  if (source === "snapshot") return locale === "en" ? "Local snapshot" : locale === "pt-BR" ? "Snapshot local" : "Snapshot local";
   if (source === "postgres") return locale === "fr" ? "Postgres local" : locale === "pt-BR" ? "Postgres local" : "Local Postgres";
   return locale === "fr" ? "Mode démo" : locale === "pt-BR" ? "Modo demo" : "Demo mode";
 }
