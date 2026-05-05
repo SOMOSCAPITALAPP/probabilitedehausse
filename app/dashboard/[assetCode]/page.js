@@ -32,7 +32,7 @@ import {
   trendLabelForLocale,
 } from "../../../lib/site-copy";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const PAGE_COPY = {
   fr: {
@@ -411,11 +411,13 @@ export default async function AssetDashboardPage({ params, searchParams }) {
     );
   }
 
-  const historyRows = await getAssetHistory(assetCode);
-  const benchmarkPayload = await getReferenceBenchmarkPayload(asset);
+  const [historyRows, benchmarkPayload, yahooSnapshot] = await Promise.all([
+    getAssetHistory(assetCode),
+    getReferenceBenchmarkPayload(asset),
+    getYahooAssetSnapshot(asset),
+  ]);
   const historyMetrics = buildHistoricalHorizonMetrics(historyRows);
   const movingAverageTrend = buildMovingAverageTrend(historyRows);
-  const yahooSnapshot = await getYahooAssetSnapshot(asset);
   const scenarioAnalysis = buildBetaScenarioAnalysis(asset, yahooSnapshot);
   const benchmarkStudy = buildBenchmarkRelativeStudy(asset, historyRows, benchmarkPayload);
   const pathModel = buildAssetPathStudy(asset, historyRows);

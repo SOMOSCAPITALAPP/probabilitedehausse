@@ -19,7 +19,7 @@ import {
   riskLabelForLocale,
 } from "../../lib/site-copy";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const SECTION_COPY = {
   fr: [
