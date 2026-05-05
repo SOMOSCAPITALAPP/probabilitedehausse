@@ -32,7 +32,7 @@ import {
   trendLabelForLocale,
 } from "../../../lib/site-copy";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 const PAGE_COPY = {
   fr: {
