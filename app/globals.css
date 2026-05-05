@@ -1448,6 +1448,12 @@ h3 {
   color: var(--text);
 }
 
+.dashboard-jump-chip-accent {
+  border-color: rgba(123, 227, 194, 0.24);
+  background: rgba(123, 227, 194, 0.12);
+  color: var(--accent);
+}
+
 .dashboard-clean-section {
   padding-top: 14px;
 }
@@ -1547,6 +1553,104 @@ h3 {
 
 .asset-clean-table tbody tr:hover {
   background: rgba(255, 255, 255, 0.025);
+}
+
+.conviction-layout {
+  display: grid;
+  gap: 18px;
+}
+
+.conviction-card {
+  overflow: hidden;
+}
+
+.conviction-header {
+  align-items: flex-start;
+}
+
+.conviction-copy {
+  max-width: 40ch;
+  margin: 0;
+  color: var(--muted);
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  text-align: right;
+}
+
+.conviction-table-wrap {
+  margin-top: 16px;
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.conviction-table {
+  width: 100%;
+  min-width: 1100px;
+  border-collapse: collapse;
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+}
+
+.conviction-table th,
+.conviction-table td {
+  padding: 14px 14px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.88rem;
+}
+
+.conviction-table th {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.conviction-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.conviction-asset-cell {
+  display: grid;
+  gap: 4px;
+}
+
+.conviction-asset-cell span {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.conviction-asset-link {
+  font-weight: 600;
+}
+
+.conviction-horizon-cell {
+  display: grid;
+  gap: 4px;
+}
+
+.conviction-horizon-cell strong {
+  font-size: 0.95rem;
+}
+
+.conviction-horizon-cell span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.conviction-arguments {
+  display: grid;
+  gap: 8px;
+  min-width: 320px;
+}
+
+.conviction-arguments p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
 }
 
 .asset-clean-table tbody tr:last-child td {

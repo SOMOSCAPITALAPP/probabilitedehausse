@@ -133,6 +133,7 @@ export default async function DashboardPage() {
           <nav className="desktop-nav" aria-label="Main navigation">
             <a href="/">Landing</a>
             <a href="/dashboard">Dashboard</a>
+            <a href="/classement">Classement</a>
             <a href="/backtest">Backtest</a>
           </nav>
 
@@ -194,6 +195,9 @@ export default async function DashboardPage() {
           </div>
 
           <nav className="dashboard-jump-nav" aria-label="Navigation par classes d'actifs">
+            <a href="/classement" className="dashboard-jump-chip dashboard-jump-chip-accent">
+              Top hausse / baisse
+            </a>
             {sectionedAssets.map((section) => (
               <a key={section.key} href={`#${section.anchor}`} className="dashboard-jump-chip">
                 {section.title}
