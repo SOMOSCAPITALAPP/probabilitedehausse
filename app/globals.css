@@ -1493,6 +1493,167 @@ h3 {
   margin-top: 22px;
 }
 
+.dashboard-search-card {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(14, 30, 52, 0.82), rgba(8, 20, 36, 0.8));
+  box-shadow: var(--shadow);
+}
+
+.dashboard-search-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.dashboard-search-heading h3,
+.dashboard-search-heading p {
+  margin: 0;
+}
+
+.dashboard-search-heading h3 {
+  margin-top: 4px;
+  font-size: 1.18rem;
+  line-height: 1.1;
+}
+
+.dashboard-search-heading p {
+  margin-top: 8px;
+  color: var(--muted);
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.dashboard-search-heading strong {
+  flex: 0 0 auto;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(123, 227, 194, 0.22);
+  color: var(--accent);
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.dashboard-search-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.6fr);
+  gap: 12px;
+}
+
+.dashboard-search-controls label {
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-search-controls span {
+  color: var(--muted);
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dashboard-search-controls input,
+.dashboard-search-controls select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.dashboard-search-controls input:focus,
+.dashboard-search-controls select:focus {
+  border-color: rgba(123, 227, 194, 0.5);
+  box-shadow: 0 0 0 3px rgba(123, 227, 194, 0.1);
+}
+
+.dashboard-search-controls select option {
+  background: #081424;
+  color: var(--text);
+}
+
+.dashboard-search-results {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dashboard-search-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.dashboard-search-result:hover {
+  transform: translateY(-1px);
+  border-color: rgba(123, 227, 194, 0.26);
+  background: rgba(123, 227, 194, 0.08);
+}
+
+.dashboard-search-result span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dashboard-search-result strong,
+.dashboard-search-result small,
+.dashboard-search-result em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-search-result strong {
+  color: var(--accent);
+  font-size: 0.86rem;
+}
+
+.dashboard-search-result small {
+  color: #dce7f5;
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-size: 0.84rem;
+}
+
+.dashboard-search-result em {
+  flex: 0 1 auto;
+  max-width: 42%;
+  color: var(--muted);
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-size: 0.74rem;
+  font-style: normal;
+  text-align: right;
+}
+
+.dashboard-search-empty {
+  margin: 0;
+  color: var(--muted);
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-size: 0.9rem;
+}
+
 .dashboard-section-block {
   margin-top: 28px;
 }
@@ -2741,11 +2902,16 @@ h3 {
 
   .dashboard-clean-top,
   .dashboard-clean-summary,
+  .dashboard-search-controls,
   .benchmark-grid,
   .scenario-grid,
   .snapshot-grid,
   .methodology-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-search-results {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .dashboard-section-heading {
@@ -2839,6 +3005,23 @@ h3 {
   .asset-forward-header,
   .asset-forward-row {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-search-heading,
+  .dashboard-search-result {
+    align-items: flex-start;
+  }
+
+  .dashboard-search-heading {
+    flex-direction: column;
+  }
+
+  .dashboard-search-results {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-search-result em {
+    max-width: 36%;
   }
 
   .preview-title-row,

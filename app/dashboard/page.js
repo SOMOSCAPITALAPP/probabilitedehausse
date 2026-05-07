@@ -18,6 +18,7 @@ import {
   pageDictionary,
   riskLabelForLocale,
 } from "../../lib/site-copy";
+import DashboardSearch from "./DashboardSearch";
 
 export const dynamic = "force-dynamic";
 
@@ -209,6 +210,16 @@ export default async function DashboardPage({ searchParams }) {
     assets.map((asset) => assetCurrentVolatility(asset)).filter((value) => Number.isFinite(value)),
   );
   const lowProb = forecasts.filter((item) => Number(item.upside_probability ?? 0) <= 0.35).length;
+  const assetSearchItems = assets.map((asset) => ({
+    asset_code: asset.asset_code,
+    asset_name: asset.asset_name,
+    asset_class: asset.asset_class,
+    source_symbol: asset.source_symbol,
+    source_name: asset.source_name,
+  }));
+  const assetSearchHrefs = Object.fromEntries(
+    assets.map((asset) => [asset.asset_code, buildLocaleHref(`/dashboard/${asset.asset_code}`, locale)]),
+  );
 
   return (
     <main className="dashboard-shell dashboard-clean-shell">
@@ -312,6 +323,8 @@ export default async function DashboardPage({ searchParams }) {
               <p>{copy.probText}</p>
             </div>
           </div>
+
+          <DashboardSearch assets={assetSearchItems} locale={locale} buildHref={assetSearchHrefs} />
 
           {sectionedAssets.map((section) => (
             <div className="dashboard-section-block" key={section.key} id={section.anchor}>
