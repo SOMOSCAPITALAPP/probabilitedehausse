@@ -7,8 +7,8 @@ import {
 import {
   LOCALE_LABELS,
   buildLocaleHref,
+  formatParisDateTime,
   getLocale,
-  localeForDate,
   pageDictionary,
 } from "../../lib/site-copy";
 
@@ -421,7 +421,7 @@ export default async function ClassementPage({ searchParams }) {
               <div>
                 <span className="status-label">{common.common.updated}</span>
                 <strong>
-                  {updatedAt ? new Date(updatedAt).toLocaleString(localeForDate(locale)) : common.common.demoMode}
+                  {updatedAt ? formatParisDateTime(updatedAt, locale) : common.common.demoMode}
                 </strong>
               </div>
               <div>

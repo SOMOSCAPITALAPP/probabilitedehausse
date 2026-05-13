@@ -12,9 +12,9 @@ import {
   LOCALE_LABELS,
   buildLocaleHref,
   confidenceLabelForLocale,
+  formatParisDateTime,
   getLocale,
   horizonLabelForLocale,
-  localeForDate,
   pageDictionary,
   riskLabelForLocale,
 } from "../../lib/site-copy";
@@ -258,7 +258,7 @@ export default async function DashboardPage({ searchParams }) {
               <div>
                 <span className="status-label">{common.common.updated}</span>
                 <strong>
-                  {updatedAt ? new Date(updatedAt).toLocaleString(localeForDate(locale)) : common.common.demoMode}
+                  {updatedAt ? formatParisDateTime(updatedAt, locale) : common.common.demoMode}
                 </strong>
               </div>
               {diagnostics.length > 0 ? (
